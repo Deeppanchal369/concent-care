@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-exception: false
+    include-message: never
+    include-binding-errors: never
+    whitelabel:
+      enabled: false
+
+spring:
+  application:
+    name: core-service
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:consentcare}
+    username: ${DB_USER:consentcare}
+    password: ${DB_PASSWORD:consentcare}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+consentcare:
+  jwt:
+    # IMPORTANT: override JWT_SECRET with a real, random 32+ byte value
+    # in any non-local deployment. Generate one with:
+    #   openssl rand -base64 48
+    secret: ${JWT_SECRET:change-this-to-a-long-random-secret-in-production-min-32-bytes}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  services:
+    risk-service-url: ${RISK_SERVICE_URL:http://localhost:8001}
+    agent-service-url: ${AGENT_SERVICE_URL:http://localhost:8002}
+  storage:
+    upload-dir: ${UPLOAD_DIR:/app/uploads}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:81,http://127.0.0.1:81,http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
+
+logging:
+  level:
+    com.consentcare: INFO
+    org.hibernate.envers: WARN

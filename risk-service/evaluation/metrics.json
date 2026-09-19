@@ -1,0 +1,89 @@
+{
+  "model_name": "readmission-risk",
+  "version": "v1.0",
+  "algorithm": "RandomForestClassifier",
+  "dataset_name": "UCI Diabetes 130-US Hospitals (1999-2008)",
+  "features": [
+    "age",
+    "time_in_hospital",
+    "num_lab_procedures",
+    "num_procedures",
+    "num_medications",
+    "number_outpatient",
+    "number_emergency",
+    "number_inpatient",
+    "number_diagnoses",
+    "diabetes_med",
+    "insulin",
+    "a1c_tested"
+  ],
+  "train_size": 81412,
+  "test_size": 20354,
+  "total_dataset_size": 101766,
+  "positive_rate": 0.1116,
+  "accuracy": 0.6898,
+  "precision": 0.1734,
+  "recall": 0.4725,
+  "f1_score": 0.2537,
+  "roc_auc": 0.6478,
+  "confusion_matrix": [
+    [
+      12968,
+      5115
+    ],
+    [
+      1198,
+      1073
+    ]
+  ],
+  "classification_report": {
+    "0": {
+      "precision": 0.915431314414796,
+      "recall": 0.7171376430901952,
+      "f1-score": 0.8042419919997519,
+      "support": 18083.0
+    },
+    "1": {
+      "precision": 0.17340012928248222,
+      "recall": 0.472479084103919,
+      "f1-score": 0.2536942901052134,
+      "support": 2271.0
+    },
+    "accuracy": 0.6898398349218827,
+    "macro avg": {
+      "precision": 0.5444157218486391,
+      "recall": 0.5948083635970571,
+      "f1-score": 0.5289681410524827,
+      "support": 20354.0
+    },
+    "weighted avg": {
+      "precision": 0.8326390956157647,
+      "recall": 0.6898398349218827,
+      "f1-score": 0.7428145658917389,
+      "support": 20354.0
+    }
+  },
+  "feature_importances": {
+    "number_inpatient": 0.3415,
+    "num_lab_procedures": 0.1221,
+    "num_medications": 0.1091,
+    "time_in_hospital": 0.0901,
+    "age": 0.0713,
+    "number_diagnoses": 0.0664,
+    "number_emergency": 0.0588,
+    "num_procedures": 0.0499,
+    "number_outpatient": 0.0393,
+    "diabetes_med": 0.0176,
+    "insulin": 0.0176,
+    "a1c_tested": 0.0162
+  },
+  "training_parameters": {
+    "n_estimators": 150,
+    "max_depth": 10,
+    "min_samples_leaf": 5,
+    "random_state": 42,
+    "class_weight": "balanced"
+  },
+  "trained_at": "2026-09-19T05:38:53.101700+00:00",
+  "limitations": "Model trained on inpatient diabetes encounters from 1999-2008. Advisory clinical decision-support only. Not a medical diagnosis."
+}

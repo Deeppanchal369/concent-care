@@ -1,0 +1,40 @@
+# Dependencies & Build Outputs
+target/
+**/target/
+dist/
+**/dist/
+node_modules/
+**/node_modules/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+
+# Environment & Local Secrets
+.env
+*.local
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Storage / Uploads
+uploads/
+**/uploads/
+*.log
+
+# Large Archives
+*.zip
+

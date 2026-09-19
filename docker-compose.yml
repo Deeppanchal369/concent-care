@@ -1,0 +1,108 @@
+name: consentcare
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: consentcare-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-consentcare}
+      POSTGRES_USER: ${POSTGRES_USER:-consentcare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-consentcare}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - consentcare_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-consentcare} -d ${POSTGRES_DB:-consentcare}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  risk-service:
+    build: ./risk-service
+    container_name: consentcare-risk-service
+    restart: unless-stopped
+    ports:
+      - "${RISK_PORT:-8001}:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8001/health\")' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  agent-service:
+    build: ./agent-service
+    container_name: consentcare-agent-service
+    restart: unless-stopped
+    environment:
+      RISK_SERVICE_URL: http://risk-service:8001
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+    ports:
+      - "${AGENT_PORT:-8002}:8002"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8002/health\")' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      risk-service:
+        condition: service_healthy
+
+  core-service:
+    build: ./core-service
+    container_name: consentcare-core-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-consentcare}
+      DB_USER: ${POSTGRES_USER:-consentcare}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-consentcare}
+      JWT_SECRET: ${JWT_SECRET:-consentcare-super-secret-jwt-token-key-change-in-production-min-32-chars}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@consentcare.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@12345}
+      ADMIN_NAME: ${ADMIN_NAME:-ConsentCare System Administrator}
+      RISK_SERVICE_URL: http://risk-service:8001
+      AGENT_SERVICE_URL: http://agent-service:8002
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-81},http://127.0.0.1:${FRONTEND_PORT:-81},http://localhost:81,http://127.0.0.1:81,http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "${CORE_PORT:-8081}:8080"
+    volumes:
+      - consentcare_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      risk-service:
+        condition: service_healthy
+      agent-service:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:${CORE_PORT:-8081}
+    container_name: consentcare-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-81}:80"
+    depends_on:
+      core-service:
+        condition: service_healthy
+
+volumes:
+  consentcare_pgdata:
+  consentcare_uploads:

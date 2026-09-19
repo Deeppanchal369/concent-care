@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-teal: #028090;
+  --color-teal-dark: #026e7a;
+  --color-seafoam: #00A896;
+  --color-mint: #02C39A;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Calibri, system-ui, sans-serif;
+  background-color: #F7FAF9;
+}
