@@ -118,12 +118,26 @@ powershell -ExecutionPolicy Bypass -File .\test_phase7_acceptance.ps1
 
 ## 6. Comprehensive Project Documentation
 
-* **[Clean Installation & Setup Guide](docs/SETUP.md)**: Detailed step-by-step installation instructions.
-* **[Final System Inventory](docs/FINAL_SYSTEM_INVENTORY.md)**: Complete catalog of routes, controllers, services, entities, and models.
-* **[Final Role & Access Matrix](docs/FINAL_ROLE_MATRIX.md)**: Exhaustive RBAC and ABAC permission boundaries for all 4 roles.
-* **[Clinical Demonstration Script](docs/FINAL_DEMO_SCRIPT.md)**: Complete step-by-step demo walkthrough script.
-* **[Research Implementation Mapping](docs/RESEARCH_IMPLEMENTATION_MAPPING.md)**: Traceability matrix connecting theoretical research themes to codebase artifacts.
-* **[Release Readiness Evaluation](docs/RELEASE_READINESS.md)**: Formal evaluation across all 14 criteria confirming zero blockers.
+### 6.1 Deployment & Operations
+* **[Production Deployment Guide](docs/DEPLOYMENT.md)**: Hardened multi-tier deployment, secrets management, and database backup/restore.
+* **[Environment Configuration Guide](docs/ENVIRONMENT_CONFIGURATION.md)**: Full catalog of environment variables across all 5 container services.
+* **[Troubleshooting & Diagnostic Runbook](docs/TROUBLESHOOTING.md)**: Remediation runbook for Ollama connectivity, ports, rate limiting, and Flyway repairs.
+* **[Clean Installation & Setup Guide](docs/SETUP.md)**: Step-by-step developer workstation installation instructions.
+
+### 6.2 System Architecture & Specifications
+* **[Final System Architecture](docs/FINAL_SYSTEM_ARCHITECTURE.md)**: Layered architecture, network topologies, data flows, and isolation models.
+* **[Final API Specification](docs/FINAL_API_OVERVIEW.md)**: Complete catalog of authenticated endpoints, DTOs, and error codes.
+* **[Final Database Schema](docs/FINAL_DATABASE_OVERVIEW.md)**: PostgreSQL 16 schema, Flyway V1–V17 migrations, and composite indexes.
+* **[Final Security & Privacy Controls](docs/FINAL_SECURITY_CONTROLS.md)**: OWASP ASVS 5.0.0 Level 2 controls, ABAC evaluator, and prompt shielding.
+* **[Final AI & Machine Learning Implementation](docs/FINAL_AI_ML_IMPLEMENTATION.md)**: Local Ollama Document AI, UCI Random Forest ML, and zero-hallucination verification.
+* **[Final Role & Permission Matrix](docs/FINAL_ROLE_AND_PERMISSION_MATRIX.md)**: Granular RBAC and ABAC matrix across all 4 user roles.
+
+### 6.3 Demonstration & Project Handover
+* **[Project Handover Dossier](docs/PROJECT_HANDOVER.md)**: Master release document, tech stack, test baseline, and truthful research declaration.
+* **[Demonstration Script](docs/DEMO_SCRIPT.md)**: Step-by-step multi-persona clinical demonstration walkthrough.
+* **[Demonstration Checklist](docs/DEMO_CHECKLIST.md)**: 10-minute pre-demo readiness checklist and quick recovery runbook.
+* **[Demonstration Test Users](docs/DEMO_TEST_USERS.md)**: Full directory of demonstration accounts, credentials, and clinical contexts.
+* **[Research Implementation Mapping](docs/RESEARCH_IMPLEMENTATION_MAPPING.md)**: Academic traceability matrix linking research themes to code artifacts.
+* **[Release Readiness Evaluation](docs/RELEASE_READINESS.md)**: 14-point release gate evaluation confirming zero release blockers.
 * **[Final Acceptance & QA Report](docs/FINAL_ACCEPTANCE_REPORT.md)**: Comprehensive empirical verification report and final release decision (**READY FOR RESEARCH DEMO**).
-* **[OWASP Verification Report](docs/PHASE6_OWASP_VERIFICATION.md)**: ASVS 5.0.0 Level 2 verification evidence.
-* **[API Security Matrix](docs/API_SECURITY_MATRIX.md)**: Endpoint-by-endpoint authorization audit.
+* **[OWASP ASVS Verification Report](docs/PHASE6_OWASP_VERIFICATION.md)**: OWASP ASVS 5.0.0 Level 2 verification evidence.

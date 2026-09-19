@@ -1,0 +1,167 @@
+# ==============================================================================
+# ConsentCare EHR — Production Docker Compose Configuration
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d
+# ==============================================================================
+name: consentcare-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: consentcare-prod-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    # In production, database is strictly internal and never exposed to host
+    expose:
+      - "5432"
+    volumes:
+      - consentcare_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    networks:
+      - internal_net
+
+  risk-service:
+    build:
+      context: ./risk-service
+      dockerfile: Dockerfile
+    container_name: consentcare-prod-risk-service
+    restart: always
+    # Strictly internal: Zero host port exposure
+    expose:
+      - "8001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8001/health\")' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - internal_net
+
+  agent-service:
+    build:
+      context: ./agent-service
+      dockerfile: Dockerfile
+    container_name: consentcare-prod-agent-service
+    restart: always
+    environment:
+      RISK_SERVICE_URL: http://risk-service:8001
+      AI_PROVIDER: ${AI_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+    # Strictly internal: Zero host port exposure
+    expose:
+      - "8002"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8002/health\")' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      risk-service:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - internal_net
+
+  core-service:
+    build:
+      context: ./core-service
+      dockerfile: Dockerfile
+    container_name: consentcare-prod-core-service
+    restart: always
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NAME: ${ADMIN_NAME:-ConsentCare Administrator}
+      RISK_SERVICE_URL: http://risk-service:8001
+      AGENT_SERVICE_URL: http://agent-service:8002
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "${PROD_API_PORT:-8080}:8080"
+    volumes:
+      - consentcare_prod_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      risk-service:
+        condition: service_healthy
+      agent-service:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - internal_net
+      - dmz_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${PROD_API_URL:-http://localhost:8080}
+    container_name: consentcare-prod-frontend
+    restart: always
+    ports:
+      - "${PROD_HTTP_PORT:-80}:80"
+    depends_on:
+      core-service:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - dmz_net
+
+networks:
+  internal_net:
+    internal: true
+    name: consentcare_prod_internal
+  dmz_net:
+    name: consentcare_prod_dmz
+
+volumes:
+  consentcare_prod_pgdata:
+    name: consentcare_prod_pgdata
+  consentcare_prod_uploads:
+    name: consentcare_prod_uploads
