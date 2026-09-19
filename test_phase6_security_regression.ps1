@@ -308,6 +308,71 @@ for ($i = 0; $i -lt 15; $i++) {
 Report-Check "RAT-1" "Rate limiter enforces HTTP 429 or decrements quota" ($rateLimited -or ($lastRemaining -ne $null)) "Remaining: $lastRemaining, RateLimited: $rateLimited"
 
 # ------------------------------------------------------------------------------
+# 9. INJECTION DEFENSES & SQL/XSS PROBES (ASVS V5.3)
+# ------------------------------------------------------------------------------
+Write-Host "`n--> Testing Injection Defenses (SQLi / XSS)..." -ForegroundColor Yellow
+
+# SQL Injection Probe
+$sqliPayload = "' OR '1'='1"
+$sqliResp = Invoke-SafeRequest -uri "$CORE_URL/api/patients/me?search=$sqliPayload" -method "GET" -headers @{ Authorization = "Bearer $patientToken" }
+$noSqlLeak = (-not ($sqliResp.Content -match "PSQLException" -or $sqliResp.Content -match "syntax error at or near" -or $sqliResp.Content -match "org.postgresql"))
+Report-Check "INJ-1" "SQL injection probe safely handled without database error leak" ($noSqlLeak -and $sqliResp.StatusCode -ne 500) "Status: $($sqliResp.StatusCode)"
+
+# XSS Payload Probe in DTO Validation
+$xssPayload = "<script>alert('XSS')</script>"
+$xssBody = @{
+    patientId = $primaryPatientId
+    encounterDate = "2026-09-19"
+    encounterType = "FOLLOW_UP"
+    chiefComplaint = $xssPayload
+    clinicalNotes = "<img src=x onerror=alert(1)>"
+} | ConvertTo-Json
+$xssResp = Invoke-SafeRequest -uri "$CORE_URL/api/clinical/encounters" -method "POST" -headers @{ Authorization = "Bearer $docToken" } -body $xssBody
+# Either blocked due to lack of consent/validation (403/400) or accepted with safe storage, never 500
+Report-Check "INJ-2" "XSS script payload safely handled without server crash" ($xssResp.StatusCode -ne 500) "Status: $($xssResp.StatusCode)"
+
+# ------------------------------------------------------------------------------
+# 10. DELEGATION & CROSS-DOCTOR ISOLATION (ASVS V4.2)
+# ------------------------------------------------------------------------------
+Write-Host "`n--> Testing Delegation & Care-Team Isolation..." -ForegroundColor Yellow
+
+# Doctor 2 attempting to assign nurse task for Eleanor without consent
+$doc2Token = Invoke-LoginWithRetry "dr.vance" "Doctor@123"
+$unauthAssignBody = @{
+    doctorId = 2
+    nurseId = 1
+    patientId = $primaryPatientId
+    taskType = "CHECK_VITALS"
+    instructions = "Unauthorized nurse task request"
+} | ConvertTo-Json
+$assignResp = Invoke-SafeRequest -uri "$CORE_URL/api/nurses/tasks" -method "POST" -headers @{ Authorization = "Bearer $doc2Token" } -body $unauthAssignBody
+Report-Check "DEL-1" "Doctor without consent denied nurse task assignment (Must be 403)" ($assignResp.StatusCode -eq 403) "Status: $($assignResp.StatusCode)"
+
+# ------------------------------------------------------------------------------
+# 11. NETWORK PORT BINDING VERIFICATION (ASVS V14.2)
+# ------------------------------------------------------------------------------
+Write-Host "`n--> Verifying Network Interface Binding..." -ForegroundColor Yellow
+
+$dockerPs = docker compose ps --format json | ConvertFrom-Json
+$riskPortBoundToLoopback = $false
+$agentPortBoundToLoopback = $false
+
+foreach ($service in $dockerPs) {
+    if ($service.Service -eq "risk-service") {
+        if ($service.Publishers.URL -match "127\.0\.0\.1" -or $service.Ports -match "127\.0\.0\.1:8001") {
+            $riskPortBoundToLoopback = $true
+        }
+    }
+    if ($service.Service -eq "agent-service") {
+        if ($service.Publishers.URL -match "127\.0\.0\.1" -or $service.Ports -match "127\.0\.0\.1:8002") {
+            $agentPortBoundToLoopback = $true
+        }
+    }
+}
+Report-Check "NET-1" "risk-service host port bound to 127.0.0.1 (not 0.0.0.0)" $riskPortBoundToLoopback
+Report-Check "NET-2" "agent-service host port bound to 127.0.0.1 (not 0.0.0.0)" $agentPortBoundToLoopback
+
+# ------------------------------------------------------------------------------
 # SUMMARY
 # ------------------------------------------------------------------------------
 Write-Host "`n================================================================" -ForegroundColor Cyan
@@ -319,4 +384,5 @@ if ($failed -gt 0) {
 } else {
     exit 0
 }
+
 

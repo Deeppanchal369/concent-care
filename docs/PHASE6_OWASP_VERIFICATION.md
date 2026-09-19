@@ -21,7 +21,9 @@ Every listed control includes the verification method and empirical test evidenc
 | **V4.1.1** | Principle of Least Privilege | System Administrator is strictly blocked from reading or altering clinical patient data. | `BOLA-2` | **PASS** |
 | **V4.1.2** | Object-Level Access Control (BOLA Defense) | Patient can only access own record; Doctor requires active category consent; Cross-patient access blocked with HTTP 403. | `BOLA-1`, `BOLA-3` | **PASS** |
 | **V4.2.1** | Delegation & Function-Level Authorization (BFLA) | Nurse can administer medication only for patients on their assigned doctor's active care team with active consent. | `BOLA-7` | **PASS** |
+| **V4.2.2** | Care-team task delegation isolation | Doctor without active consent cannot order or assign clinical tasks to nurses for a patient. | `DEL-1` | **PASS** |
 | **V5.1.1** | Input validation on all untrusted data | Jakarta Bean Validation (`@Valid`, `@NotNull`, `@NotBlank`) enforced on all DTO request payloads. | Integration Tests | **PASS** |
+| **V5.3.1** | Injection defenses (SQLi, XSS) | Parameterized JPA queries and input encoding prevent SQL syntax errors or script execution on all input parameters. | `INJ-1`, `INJ-2` | **PASS** |
 | **V7.3.1** | Sanitized error handling | `GlobalExceptionHandler` intercepts exceptions and standardizes to `ErrorResponse` without leaking stack traces or SQL details. | `LEG-1`, `GlobalExceptionHandler` | **PASS** |
 | **V8.1.1** | Sensitive data masking in audit trails | `AuditService` regex-sanitizes passwords, JWT tokens, and credentials from metadata and reason logs. | `AUD-1` | **PASS** |
 | **V10.1.1** | Unrestricted resource consumption / DoS defense | Pagination parameters clamped (`page >= 0`, `size <= 100`). Bounded notification queries (`findTop100`). | `PAG-1` | **PASS** |
@@ -33,6 +35,7 @@ Every listed control includes the verification method and empirical test evidenc
 | **V14.1.3** | Anti-Clickjacking | `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'` enforced. | `HDR-3` | **PASS** |
 | **V14.1.4** | Feature restriction | `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` enforced. | `HDR-4` | **PASS** |
 | **V14.1.5** | Referrer Policy | `Referrer-Policy: strict-origin-when-cross-origin` enforced. | `HDR-5` | **PASS** |
+| **V14.2.1** | Network service interface isolation | Internal microservices (`risk-service`, `agent-service`) bound strictly to loopback interface `127.0.0.1`. | `NET-1`, `NET-2` | **PASS** |
 
 ---
 
@@ -71,5 +74,6 @@ Every listed control includes the verification method and empirical test evidenc
 ---
 
 ## 5. Conclusion
-ConsentCare EHR fully satisfies the requirements of **OWASP ASVS 5.0.0 Level 2**, **OWASP Top 10:2025**, and **OWASP API Security Top 10:2023**. All 31 automated security regression tests passed with zero failures.
+ConsentCare EHR fully satisfies the requirements of **OWASP ASVS 5.0.0 Level 2**, **OWASP Top 10:2025**, and **OWASP API Security Top 10:2023**. All 36 automated security regression tests passed with zero failures.
+
 

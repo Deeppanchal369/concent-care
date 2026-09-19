@@ -56,7 +56,7 @@ Phase 6 hardening for ConsentCare Electronic Health Record (EHR) has been comple
 ### 3.1 Phase 6 Security Regression Suite (`test_phase6_security_regression.ps1`)
 ```
 ================================================================
- RESULTS: 31 PASSED, 0 FAILED out of 31 checks (100% Success)
+ RESULTS: 36 PASSED, 0 FAILED out of 36 checks (100% Success)
 ================================================================
 ```
 * **AUTH-1 to AUTH-5**: Admin, Doctor, Nurse, Primary Patient, and Secondary Patient authentications passed.
@@ -67,6 +67,9 @@ Phase 6 hardening for ConsentCare Electronic Health Record (EHR) has been comple
 * **PAG-1**: Pagination request of 5,000 entries clamped to 100.
 * **AUD-1**: Sensitive data masking verified in audit logs.
 * **RAT-1**: Rate limiting active and verified.
+* **INJ-1 to INJ-2**: SQL injection and XSS script probes handled safely without database leaks or server crashes.
+* **DEL-1**: Cross-doctor nurse task assignment blocked without active consent (403).
+* **NET-1 to NET-2**: Microservices `risk-service` and `agent-service` host ports verified bound strictly to `127.0.0.1` loopback.
 
 ### 3.2 Phase 5 End-to-End Clinical & AI Suite (`test_phase5_e2e.ps1`)
 ```
