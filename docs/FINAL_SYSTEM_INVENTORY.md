@@ -171,3 +171,4 @@ Tailwind CSS responsive design validated across viewports:
 | `RISK_SERVICE_URL` | `core-service`, `agent-service` | `http://risk-service:8001` | Internal ML service URL |
 | `AGENT_SERVICE_URL` | `core-service` | `http://agent-service:8002` | Internal AI service URL |
 | `UPLOAD_DIR` | `core-service` | `/app/uploads` | Document storage volume mount |
+

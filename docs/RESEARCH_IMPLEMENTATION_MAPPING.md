@@ -71,3 +71,4 @@ This document provides a grounded, honest mapping between the theoretical resear
 * **Actual Implementation**:
   * Internal data models mirror FHIR R4 resource definitions (`Patient`, `Observation`, `Condition`, `MedicationRequest`, `DiagnosticReport`).
   * Direct REST FHIR endpoints are planned for Phase 8; Phase 7 provides internal FHIR-aligned schemas and export compatibility.
+

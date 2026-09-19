@@ -81,3 +81,4 @@ ConsentCare enforces four distinct user roles based on the **Principle of Least 
    Doctors cannot assign clinical tasks to nurses who are not part of their authorized care team.
 5. **Zero Unauthorized Nurse Admin**:
    Nurses cannot administer medications to patients unless assigned under a doctor holding active patient consent.
+
