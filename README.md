@@ -1,85 +1,129 @@
 # ConsentCare EHR
 
-> A patient-governed, zero-trust Electronic Health Record (EHR) system featuring real-time clinical workflows, automated document intelligence, machine learning hospital readmission prediction, and HL7 FHIR R4 interoperability.
+> A patient-governed, zero-trust Electronic Health Record (EHR) system featuring real-time clinical workflows, grounded local document intelligence, machine learning hospital readmission prediction, and OWASP ASVS 5.0.0 (Level 2) hardened security.
 
 ---
 
-## Highlights
+## 1. System Overview & Core Capabilities
 
-- **Zero-Trust Patient Consent Engine**: Granular patient control across 11 clinical categories (`CLINICAL_NOTES`, `DIAGNOSES`, `MEDICATIONS`, `LAB_REPORTS`, `VITALS`, etc.). Doctors cannot view records without active patient consent.
-- **Dedicated Role Workstations**:
-  - **Doctor Clinical Workstation**: Cohort review, clinical encounter documentation, diagnoses problem list, multi-item prescriptions, lab test orders, and care team delegation.
-  - **Nurse Care Workstation**: Real-time task queue, medication administration logging (`GIVEN`/`REFUSED`/`HELD`), vital signs recording, and explicit availability state control (`AVAILABLE`/`BUSY`).
-  - **Patient Care & Consent Portal**: Sovereign record control, 1-click consent granting and instant revocation, incoming physician access requests approval/rejection, and audit ledger viewing.
-  - **Hospital Admin Console**: Clinician onboarding, department management, immutable system audit logs, and AI/ML model metrics.
-- **1-Click Clinical Readmission Risk Model**:
-  - Powered by a `RandomForestClassifier` trained on a benchmark clinical cohort modeled after the **UCI Diabetes 130-US Hospitals** dataset (Accuracy: 86.9%, Precision: 94.6%, Recall: 88.1%, ROC-AUC: 94.3%).
-  - **No manual typing of features**: Features (`days_since_last_visit`, `age`, `active_prescription_count`, `chronic_condition_flag`, `visits_last_12_months`) are automatically computed directly from the patient's EHR records by `EhrFeatureService`.
-- **Clinical Document Intelligence**:
-  - AI extraction of quantifiable laboratory tests, reference ranges, abnormal flags, medications, and conditions with clinician-facing summaries and regulatory safety disclaimers.
-- **Real-Time Notification Pipeline**:
-  - Server-Sent Events (SSE) streaming live care alerts (new prescriptions, lab results, nurse task assignments) with instant toast notifications.
-- **HL7 FHIR R4 Standard Interoperability**:
-  - Standard FHIR projections for `Patient`, `Practitioner`, `Observation`, `Condition`, and `MedicationRequest`, plus an `$everything` searchset bundle.
-- **Enterprise Audit Trail**:
-  - Full actor attribution (`actor_username`, `actor_role`, `action`, `target`, `timestamp`, `outcome`) with Hibernate Envers revision history (`revinfo_seq INCREMENT BY 50`).
+* **Zero-Trust Patient Consent Sovereignty**:
+  * Granular patient control across clinical categories (`MEDICAL_HISTORY`, `DIAGNOSES`, `LAB_REPORTS`, `PRESCRIPTIONS`, `DOCUMENTS`, `RISK_ASSESSMENTS`).
+  * Physicians cannot access patient records or order interventions without active patient consent.
+  * Immediate revocation propagation ("Stop Sharing") halts access instantly (HTTP 403 Forbidden).
+* **Dedicated Role Workstations**:
+  * **Doctor Clinical Workstation**: Cohort review, longitudinal encounters, diagnoses problem list, multi-item prescriptions, lab test orders, Document AI review, and care-team task delegation.
+  * **Nurse Care Workstation**: Real-time task queue, bedside patient safety context, medication administration, vital signs recording, and explicit availability state control (`AVAILABLE` / `BUSY`).
+  * **Patient Care & Consent Portal**: Sovereign record control, 1-click consent granting and instant revocation, incoming physician access requests approval/rejection, and audit ledger viewing.
+  * **System Administration Console**: Clinician onboarding, care-team assignment, immutable system audit logs, and diagnostic health monitoring (with zero access to clinical charts).
+* **Supervised Clinical Readmission Risk Model**:
+  * Powered by an authentic `RandomForestClassifier` (200 estimators) trained on 101,766 clinical encounters from the **UCI Diabetes 130-US Hospitals (1999–2008)** dataset (Accuracy: 0.6898, ROC-AUC: 0.6478).
+  * Strict zero-fabrication mandate: Incomplete records return `INSUFFICIENT_DATA` rather than guessing missing features.
+* **Grounded Local Document AI**:
+  * Powered by locally running **Ollama (`llama3.2:1b`)** and Tesseract OCR over internal Docker-to-host bridge (`http://host.docker.internal:11434`).
+  * Strict zero-hallucination mandate: Missing clinical data is returned as `"Not detected"`.
+  * Adversarial prompt injection defense: Uploaded document text is isolated within inert XML tags without autonomous execution.
+* **Hardened Security & Privacy**:
+  * Hardened against **OWASP ASVS 5.0.0 (Level 2)**, OWASP Top 10:2025, and OWASP API Top 10:2023.
+  * BOLA / IDOR protection across all endpoints; internal microservice ports bound strictly to loopback `127.0.0.1`.
+  * Automated regex redaction in audit logs preventing raw passwords, Bearer tokens, or credentials from leaking.
 
 ---
 
-## Target Service Architecture
+## 2. Target Service Architecture
 
 ```
-[ Frontend: React 19 / Tailwind CSS ]   ---> Port 3000 (Host) / 80 (Container)
+[ Frontend: React 18 / Vite / Tailwind ]  ---> Port 81 (Host) / Port 80 (Container)
                 |
                 v  REST / SSE Stream
-[ Core Service: Spring Boot 3.3 / Java 17 ] ---> Port 8080
-       |               |               |
-       v               v               v
- [ PostgreSQL 16 ]  [ Risk Svc: 8001 ]  [ Agent Svc: 8002 ]
- (Port 5432)        (FastAPI / Scikit) (FastAPI / NLP)
+[ Core Service: Spring Boot 3.3 / Java 17 ] ---> Port 8081 (Host) / Port 8080 (Container)
+        |               |               |
+        v               v               v
+  [ PostgreSQL 16 ]  [ Risk Svc: 8001 ]  [ Agent Svc: 8002 ]
+  (Port 5433)        (127.0.0.1:8001)    (127.0.0.1:8002)
+   Flyway V1-V17     (FastAPI / Scikit)  (FastAPI / Ollama)
 ```
 
 ---
 
-## Quickstart (Docker Compose)
+## 3. Quickstart & Installation
 
-### 1. Configure Environment
+### 3.1 Prerequisites
+* Docker Desktop 4.25+ with Docker Engine 26+ and Docker Compose v2+
+* Local [Ollama](https://ollama.ai) installed and running on the host machine:
+  ```bash
+  ollama serve
+  ollama pull llama3.2:1b
+  ```
+
+### 3.2 Environment Configuration
+Copy the template configuration:
 ```bash
 cp .env.example .env
 ```
 
-### 2. Build and Launch
+### 3.3 Build and Launch Containers
 ```bash
-docker compose up --build -d
+docker compose build
+docker compose up -d
 ```
 
-### 3. Verify Health
+### 3.4 Verify Service Health
 ```bash
 docker compose ps
 ```
-All services should be `Up (healthy)`.
+All 5 containers must report status `Up (healthy)`.
 
 ---
 
-## Demo Accounts & Quick Testing
+## 4. Default Demonstration Accounts
 
-| Role | Username / Email | Password | Workstation |
-| :--- | :--- | :--- | :--- |
-| **System Admin** | `admin@consentcare.local` | `Admin@12345` | Hospital Admin Console |
-| **Attending Doctor** | `doctor.chen` | `Doctor@12345` | Doctor Clinical Workstation |
-| **Care Team Nurse** | `nurse.sarah` | `Nurse@12345` | Nurse Care Workstation |
-| **Consented Patient**| `patient.john` | `Patient@12345` | Patient Care & Consent Portal |
+| Role | Username | Default Password | Clinical Context |
+|---|---|---|---|
+| **System Administrator** | `admin` | `Admin@12345` | System Administration (`/admin`) |
+| **Attending Doctor** | `dr.jenkins` | `Doctor@123` | Dr. Sarah Jenkins, MD (Doctor ID 1) |
+| **Secondary Doctor** | `dr.vance` | `Doctor@123` | Dr. Marcus Vance, MD (Doctor ID 2) |
+| **Care Team Nurse** | `nurse.elena` | `Nurse@123` | Elena Rostova, RN (Nurse ID 1) |
+| **Care Team Nurse** | `nurse.david` | `Nurse@123` | David Miller, RN (Nurse ID 2) |
+| **Consented Patient** | `patient.eleanor.vance` | `Patient@123` | Eleanor Vance (Patient ID 4) |
 
-*Note: The sign-in page at `http://localhost:3000/login` features quick-fill buttons for each role.*
+*Note: The frontend application is accessible at `http://localhost:81`.*
 
 ---
 
-## Comprehensive Documentation Suite
+## 5. Automated Verification & Testing
 
-- **[System Architecture](docs/ARCHITECTURE.md)**: Deep dive into microservices, consent security engine, and FHIR views.
-- **[Docker Deployment](docs/DOCKER.md)**: Container setup, environment variables, healthchecks, and troubleshooting.
-- **[API Reference](docs/API.md)**: Exhaustive REST API specification for all clinical and administrative endpoints.
-- **[AI & Machine Learning](docs/AI.md)**: UCI Diabetes readmission model metrics, feature extraction, and document intelligence.
-- **[Security & Compliance](docs/SECURITY.md)**: Zero-trust consent rules, JWT/SSE security, and immutable audit logging.
-- **[Clinical Demonstration Script](docs/DEMO.md)**: Step-by-step walkthrough covering all 4 roles and end-to-end workflows.
-- **[Database Migrations](docs/DATABASE_MIGRATIONS.md)**: Sequential Flyway V1-V12 migration catalog and Envers sequence conventions.
+Execute the test suites against running containers:
+
+```powershell
+# Maven unit tests (17 checks)
+cd core-service; mvn -B test; cd ..
+
+# Phase 3 E2E test suite (Longitudinal records & documents)
+powershell -ExecutionPolicy Bypass -File .\test_phase3_e2e.ps1
+
+# Phase 4 E2E test suite (Nurse workflow & concurrency lock)
+powershell -ExecutionPolicy Bypass -File .\test_phase4_e2e.ps1
+
+# Phase 5 E2E test suite (Document AI & UCI Random Forest ML)
+powershell -ExecutionPolicy Bypass -File .\test_phase5_e2e.ps1
+
+# Phase 6 Security regression suite (36 OWASP ASVS checks)
+powershell -ExecutionPolicy Bypass -File .\test_phase6_security_regression.ps1
+
+# Phase 7 Final acceptance suite (29 QA release checks)
+powershell -ExecutionPolicy Bypass -File .\test_phase7_acceptance.ps1
+```
+
+---
+
+## 6. Comprehensive Project Documentation
+
+* **[Clean Installation & Setup Guide](docs/SETUP.md)**: Detailed step-by-step installation instructions.
+* **[Final System Inventory](docs/FINAL_SYSTEM_INVENTORY.md)**: Complete catalog of routes, controllers, services, entities, and models.
+* **[Final Role & Access Matrix](docs/FINAL_ROLE_MATRIX.md)**: Exhaustive RBAC and ABAC permission boundaries for all 4 roles.
+* **[Clinical Demonstration Script](docs/FINAL_DEMO_SCRIPT.md)**: Complete step-by-step demo walkthrough script.
+* **[Research Implementation Mapping](docs/RESEARCH_IMPLEMENTATION_MAPPING.md)**: Traceability matrix connecting theoretical research themes to codebase artifacts.
+* **[Release Readiness Evaluation](docs/RELEASE_READINESS.md)**: Formal evaluation across all 14 criteria confirming zero blockers.
+* **[Final Acceptance & QA Report](docs/FINAL_ACCEPTANCE_REPORT.md)**: Comprehensive empirical verification report and final release decision (**READY FOR RESEARCH DEMO**).
+* **[OWASP Verification Report](docs/PHASE6_OWASP_VERIFICATION.md)**: ASVS 5.0.0 Level 2 verification evidence.
+* **[API Security Matrix](docs/API_SECURITY_MATRIX.md)**: Endpoint-by-endpoint authorization audit.

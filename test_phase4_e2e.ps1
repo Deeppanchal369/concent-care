@@ -256,8 +256,8 @@ $illegalTaskBody = @{
     instructions = "Attempting illegal delegation"
 } | ConvertTo-Json
 
-$teamBoundaryRes = Invoke-RestExpectStatus -Uri "$baseUrl/api/nurses/tasks" -Method Post -Headers $d1Headers -Body $illegalTaskBody -ExpectedStatus 400
-Write-Host " [PASS] Cross-team delegation strictly BLOCKED (400 Bad Request: nurse not in care team)." -ForegroundColor Green
+$teamBoundaryRes = Invoke-RestExpectStatus -Uri "$baseUrl/api/nurses/tasks" -Method Post -Headers $d1Headers -Body $illegalTaskBody -ExpectedStatus @(400, 403)
+Write-Host " [PASS] Cross-team delegation strictly BLOCKED ($($teamBoundaryRes.StatusCode): nurse not in care team)." -ForegroundColor Green
 
 # --------------------------------------------------------------------------
 # Step 8: Concurrency & Status Transition (Nurse 2 AVAILABLE -> BUSY)

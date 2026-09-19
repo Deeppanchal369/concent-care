@@ -221,6 +221,16 @@ try {
 # 12. Test Clinical Record Creation, Amendment & Status Updates
 Write-Host "`n--- Testing Clinical Encounter & Diagnosis Lifecycle ---" -ForegroundColor Yellow
 
+# Ensure Dr. Jenkins holds active MEDICAL_HISTORY consent for Eleanor Vance
+$grantHistBody = @{
+    doctorId = 1
+    category = "MEDICAL_HISTORY"
+    purpose = "Cardiovascular and metabolic clinical management"
+    expiresAt = (Get-Date).AddDays(30).ToString("yyyy-MM-ddTHH:mm:ssZ")
+} | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:8081/api/consents/grant" -Method Post -Headers $pHeaders -Body $grantHistBody -ContentType "application/json" | Out-Null
+Write-Host " [PASS] Granted Dr. Jenkins active MEDICAL_HISTORY consent." -ForegroundColor Green
+
 # Dr. Jenkins creates an encounter for Eleanor Vance
 $newEncPayload = @{
     patientId = $patientId
