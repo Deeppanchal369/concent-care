@@ -116,7 +116,9 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> listAuditLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by("timestamp").descending());
         var pageResult = auditLogRepository.findAll(pageable);
         List<AuditLogResponse> logs = pageResult.getContent().stream()
                 .map(a -> new AuditLogResponse(

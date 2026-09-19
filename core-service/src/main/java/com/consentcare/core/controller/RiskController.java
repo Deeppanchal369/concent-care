@@ -51,26 +51,11 @@ public class RiskController {
         return ResponseEntity.ok(riskService.getModelMetrics());
     }
 
-    @PostMapping("/predict")
-    public ResponseEntity<Object> predictRaw(@RequestBody Map<String, Object> features) {
-        try {
-            Object result = riskServiceClient.post()
-                    .uri("/predict")
-                    .bodyValue(features)
-                    .retrieve()
-                    .bodyToMono(Object.class)
-                    .block();
-            return ResponseEntity.ok(result);
-        } catch (WebClientResponseException e) {
-            return ResponseEntity.status(e.getStatusCode())
-                    .body(Map.of("error", "risk-service returned an error", "details", e.getResponseBodyAsString()));
-        } catch (Exception e) {
-            return ResponseEntity.status(502)
-                    .body(Map.of("error", "Could not reach risk-service", "details", e.getMessage()));
-        }
-    }
-
+    /**
+     * Diagnostic health check for risk-service connectivity, restricted to system administrators.
+     */
     @GetMapping("/health")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> health() {
         try {
             Object result = riskServiceClient.get().uri("/health").retrieve().bodyToMono(Object.class).block();

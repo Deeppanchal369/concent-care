@@ -6,6 +6,7 @@ import com.consentcare.core.repository.*;
 import com.consentcare.core.workflow.ConsentWorkflowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,7 +129,7 @@ public class ConsentService {
         boolean isOwner = patient.getLinkedUserId() != null && patient.getLinkedUserId().equals(actor.getId());
         boolean isAdmin = actor.getRole() == Role.ADMIN;
         if (!isOwner && !isAdmin) {
-            throw new IllegalArgumentException("Only the patient can stop sharing their medical records.");
+            throw new AccessDeniedException("Only the patient can stop sharing their medical records.");
         }
 
         consent.setRevoked(true);
@@ -158,9 +159,9 @@ public class ConsentService {
         Patient patient;
         if (actor.getRole() == Role.PATIENT) {
             patient = patientRepository.findByLinkedUserId(actor.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Patient profile not found"));
+                    .orElseThrow(() -> new AccessDeniedException("Patient profile not found for current user"));
         } else {
-            throw new IllegalArgumentException("Only the patient can stop sharing their medical records.");
+            throw new AccessDeniedException("Only the patient can stop sharing their medical records.");
         }
 
         OffsetDateTime now = OffsetDateTime.now();

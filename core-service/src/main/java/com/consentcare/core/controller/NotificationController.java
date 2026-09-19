@@ -7,6 +7,8 @@ import com.consentcare.core.service.NotificationSseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -45,9 +47,10 @@ public class NotificationController {
     }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PreAuthorize("isAuthenticated()")
     public SseEmitter streamEvents(@AuthenticationPrincipal User user) {
         if (user == null) {
-            throw new IllegalArgumentException("Authentication required to subscribe to real-time events.");
+            throw new AccessDeniedException("Authentication required to subscribe to real-time events.");
         }
         return sseService.subscribe(user.getId());
     }

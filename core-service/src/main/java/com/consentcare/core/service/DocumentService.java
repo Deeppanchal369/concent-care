@@ -60,14 +60,14 @@ public class DocumentService {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (uploader.getRole() == Role.PATIENT) {
             if (!securityEvaluator.isOwningPatient(auth, patientId)) {
-                throw new IllegalArgumentException("You can only upload documents to your own patient profile.");
+                throw new AccessDeniedException("You can only upload documents to your own patient profile.");
             }
         } else if (uploader.getRole() == Role.DOCTOR || uploader.getRole() == Role.NURSE) {
             if (!securityEvaluator.canAccessPatientAny(auth, patientId)) {
-                throw new IllegalArgumentException("You cannot upload documents for a patient without active consent or care assignment.");
+                throw new AccessDeniedException("You cannot upload documents for a patient without active consent or care assignment.");
             }
         } else {
-            throw new IllegalArgumentException("Administrators do not perform clinical document uploads.");
+            throw new AccessDeniedException("Administrators do not perform clinical document uploads.");
         }
 
         documentSecurityValidator.validateUpload(file);

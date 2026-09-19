@@ -12,6 +12,7 @@ import com.consentcare.core.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +26,8 @@ public class PatientService {
     private final AuditService auditService;
 
     public List<PatientResponse> listAll(User actor) {
-        if (actor.getRole() != Role.ADMIN) {
-            throw new IllegalArgumentException("Only administrators can list the entire clinic patient directory.");
+        if (actor == null || actor.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Only administrators can list the entire clinic patient directory.");
         }
         return patientRepository.findAll().stream().map(this::toResponse).toList();
     }

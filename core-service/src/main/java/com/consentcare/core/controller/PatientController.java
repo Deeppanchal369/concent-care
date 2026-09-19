@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class PatientController {
 
     /** Clinic-wide patient list -- staff only, patients have no reason to see the full directory. */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PatientResponse>> listAll(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(patientService.listAll(user));
     }
@@ -42,7 +44,7 @@ public class PatientController {
         if (user.getRole() == Role.PATIENT) {
             PatientResponse mine = patientService.getMine(user.getId());
             if (!mine.id().equals(id)) {
-                throw new IllegalArgumentException("Patients can only view their own record.");
+                throw new AccessDeniedException("Patients can only view their own record.");
             }
             return ResponseEntity.ok(mine);
         }

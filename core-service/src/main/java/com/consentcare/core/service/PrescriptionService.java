@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,8 @@ public class PrescriptionService {
     private final DoctorRepository doctorRepository;
     private final NurseRepository nurseRepository;
     private final PatientRepository patientRepository;
+    private final DoctorNurseAssignmentRepository assignmentRepository;
+    private final ConsentRepository consentRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
 
@@ -93,23 +96,53 @@ public class PrescriptionService {
     }
 
     @Transactional
-    public void recordAdministration(RecordAdministrationRequest req, User nurseUser) {
-        Nurse nurse = nurseRepository.findByUserId(nurseUser.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Only authorized nurses can log medication administration."));
-
+    public void recordAdministration(RecordAdministrationRequest req, User actorUser) {
         PrescriptionItem item = itemRepository.findById(req.prescriptionItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Prescription item not found: " + req.prescriptionItemId()));
 
+        Prescription prescription = prescriptionRepository.findById(item.getPrescriptionId())
+                .orElseThrow(() -> new IllegalArgumentException("Prescription not found for item: " + item.getId()));
+
+        Long patientId = prescription.getPatientId();
+        OffsetDateTime now = OffsetDateTime.now();
+        Long nurseId = null;
+
+        if (actorUser.getRole() == Role.NURSE) {
+            Nurse nurse = nurseRepository.findByUserId(actorUser.getId())
+                    .orElseThrow(() -> new AccessDeniedException("Only authorized nurses can log medication administration."));
+            nurseId = nurse.getId();
+
+            // Verify nurse belongs to an active care team under a doctor with active patient consent
+            boolean isAuthorizedNurse = assignmentRepository.findByNurseIdAndActiveTrue(nurse.getId()).stream()
+                    .anyMatch(assignment -> consentRepository.findByPatientIdAndDoctorId(patientId, assignment.getDoctor().getId()).stream()
+                            .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now)));
+            if (!isAuthorizedNurse) {
+                auditService.logAction(actorUser.getUsername(), Role.NURSE.name(), "MEDICATION_ADMINISTERED", "MedicationAdministration", item.getId().toString(), "FAILURE", "Nurse not authorized on active care team for patient " + patientId);
+                throw new AccessDeniedException("Nurse is not assigned to an active care team with consent for patient #" + patientId);
+            }
+        } else if (actorUser.getRole() == Role.DOCTOR) {
+            Doctor doctor = doctorRepository.findByUserId(actorUser.getId())
+                    .orElseThrow(() -> new AccessDeniedException("Doctor profile not found"));
+            boolean hasConsent = consentRepository.findByPatientIdAndDoctorId(patientId, doctor.getId()).stream()
+                    .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now));
+            if (!hasConsent) {
+                auditService.logAction(actorUser.getUsername(), Role.DOCTOR.name(), "MEDICATION_ADMINISTERED", "MedicationAdministration", item.getId().toString(), "FAILURE", "Doctor has no active consent for patient " + patientId);
+                throw new AccessDeniedException("Doctor has no active consent for patient #" + patientId);
+            }
+        } else {
+            throw new AccessDeniedException("Only nurses or doctors can record medication administration.");
+        }
+
         MedicationAdministration ma = MedicationAdministration.builder()
                 .prescriptionItemId(item.getId())
-                .nurseId(nurse.getId())
+                .nurseId(nurseId)
                 .administeredAt(OffsetDateTime.now())
                 .status(req.status() != null ? req.status() : "GIVEN")
                 .notes(req.notes())
                 .build();
         adminRepository.save(ma);
 
-        auditService.logAction(nurseUser.getUsername(), Role.NURSE.name(), "MEDICATION_ADMINISTERED", "MedicationAdministration", ma.getId().toString(), "SUCCESS", "Medication " + item.getMedicationName() + " logged as " + ma.getStatus());
+        auditService.logAction(actorUser.getUsername(), actorUser.getRole().name(), "MEDICATION_ADMINISTERED", "MedicationAdministration", ma.getId().toString(), "SUCCESS", "Medication " + item.getMedicationName() + " logged as " + ma.getStatus());
     }
 
     private PrescriptionResponse toResponse(Prescription p) {

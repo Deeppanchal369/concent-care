@@ -6,6 +6,7 @@ import com.consentcare.core.model.*;
 import com.consentcare.core.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +64,7 @@ public class NurseService {
                 .orElseThrow(() -> new IllegalArgumentException("Doctor profile not found"));
 
         if (!doctor.getId().equals(req.doctorId())) {
-            throw new IllegalArgumentException("Doctor ID mismatch in assignment request.");
+            throw new AccessDeniedException("Doctor ID mismatch in assignment request.");
         }
 
         // 1. Transaction-safe concurrency: Pessimistic write lock on Nurse
@@ -78,13 +79,13 @@ public class NurseService {
         boolean hasConsent = consentRepository.findByPatientIdAndDoctorId(patient.getId(), doctor.getId()).stream()
                 .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now));
         if (!hasConsent) {
-            throw new IllegalStateException("Doctor #" + doctor.getId() + " does not have active patient consent to order clinical tasks for " + patient.getFullName());
+            throw new AccessDeniedException("Doctor #" + doctor.getId() + " does not have active patient consent to order clinical tasks for " + patient.getFullName());
         }
 
         // 3. Nurse MUST belong to doctor's active care team
         boolean assigned = assignmentRepository.existsByDoctorIdAndNurseIdAndActiveTrue(doctor.getId(), nurse.getId());
         if (!assigned) {
-            throw new IllegalArgumentException("Nurse " + nurse.getUser().getFullName() + " is not assigned to Dr. " + doctorUser.getFullName() + "'s care team.");
+            throw new AccessDeniedException("Nurse " + nurse.getUser().getFullName() + " is not assigned to Dr. " + doctorUser.getFullName() + "'s care team.");
         }
 
         // 4. Verify nurse availability
@@ -155,7 +156,7 @@ public class NurseService {
                 .orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
 
         if (!task.getNurse().getId().equals(nurse.getId())) {
-            throw new IllegalArgumentException("You are not assigned to this task.");
+            throw new AccessDeniedException("You are not assigned to this task.");
         }
 
         String oldStatus = task.getStatus();
@@ -259,7 +260,7 @@ public class NurseService {
         boolean isSelf = nurse.getUser().getId().equals(actor.getId());
         boolean isAdmin = actor.getRole() == Role.ADMIN;
         if (!isSelf && !isAdmin) {
-            throw new IllegalArgumentException("You can only change your own availability status.");
+            throw new AccessDeniedException("You can only change your own availability status.");
         }
 
         nurse.setAvailabilityStatus(status);

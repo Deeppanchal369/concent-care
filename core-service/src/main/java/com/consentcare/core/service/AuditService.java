@@ -19,6 +19,15 @@ public class AuditService {
     private final AuditLogRepository auditLogRepository;
     private final AccessLogRepository accessLogRepository;
 
+    private static final java.util.regex.Pattern SENSITIVE_PATTERN = java.util.regex.Pattern.compile(
+            "(?i)(password|token|secret|authorization|bearer)[\\s:=]+[\"']?([^\"'\\s,}]+)[\"']?"
+    );
+
+    private String sanitize(String input) {
+        if (input == null) return null;
+        return SENSITIVE_PATTERN.matcher(input).replaceAll("$1=***REDACTED***");
+    }
+
     public void logAction(String actorUsername, String actorRole, String action, String resourceType, String resourceId, String result, String metadataJson) {
         try {
             AuditLog entry = AuditLog.builder()
@@ -28,7 +37,7 @@ public class AuditService {
                     .resourceType(resourceType)
                     .resourceId(resourceId)
                     .result(result)
-                    .metadataJson(metadataJson)
+                    .metadataJson(sanitize(metadataJson))
                     .timestamp(OffsetDateTime.now())
                     .build();
             auditLogRepository.save(entry);
@@ -45,7 +54,7 @@ public class AuditService {
                     .actorRole(actor.getRole().name())
                     .category(category)
                     .decision(decision)
-                    .reason(reason)
+                    .reason(sanitize(reason))
                     .flagged(flagged)
                     .accessedAt(OffsetDateTime.now())
                     .build();

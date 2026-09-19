@@ -95,7 +95,6 @@ public class SecurityConfig {
             })
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/login", "/actuator/health").permitAll()
-                .requestMatchers("/api/notifications/stream").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

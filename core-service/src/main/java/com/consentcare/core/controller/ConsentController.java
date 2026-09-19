@@ -36,6 +36,7 @@ public class ConsentController {
     }
 
     @PostMapping({"/{id}/revoke", "/revoke/{id}"})
+    @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
     public ResponseEntity<ConsentResponse> revokeConsent(
             @PathVariable Long id,
             @AuthenticationPrincipal User actor) {

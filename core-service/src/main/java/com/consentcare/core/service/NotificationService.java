@@ -42,7 +42,7 @@ public class NotificationService {
     }
 
     public List<NotificationResponse> getUserNotifications(Long recipientUserId) {
-        return notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(recipientUserId).stream()
+        return notificationRepository.findTop100ByRecipientUserIdOrderByCreatedAtDesc(recipientUserId).stream()
                 .map(this::toDto)
                 .toList();
     }

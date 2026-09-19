@@ -104,7 +104,7 @@ public class ClinicalRecordController {
     }
 
     @PatchMapping("/lab-requests/{requestId}/status")
-    @PreAuthorize("hasRole('DOCTOR') or hasRole('NURSE') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DOCTOR') or hasRole('NURSE')")
     public ResponseEntity<LabRequestResponse> updateLabRequestStatus(@PathVariable Long requestId,
                                                                      @RequestBody Map<String, String> body,
                                                                      @AuthenticationPrincipal User user) {
@@ -114,7 +114,7 @@ public class ClinicalRecordController {
 
     // --- LAB REPORTS ---
     @PostMapping("/lab-reports")
-    @PreAuthorize("hasRole('DOCTOR') or hasRole('NURSE') or hasRole('ADMIN')")
+    @PreAuthorize("(hasRole('DOCTOR') or hasRole('NURSE')) and @consentSecurityEvaluator.canAccessPatient(authentication, #req.patientId(), 'LAB_REPORTS')")
     public ResponseEntity<LabReportResponse> recordLabReport(@Valid @RequestBody RecordLabReportRequest req,
                                                              @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(clinicalRecordService.recordLabReport(req, user));
@@ -138,7 +138,7 @@ public class ClinicalRecordController {
 
     // --- OBSERVATIONS / VITALS ---
     @PostMapping("/observations")
-    @PreAuthorize("hasRole('DOCTOR') or hasRole('NURSE')")
+    @PreAuthorize("(hasRole('DOCTOR') or hasRole('NURSE')) and @consentSecurityEvaluator.canAccessPatientAny(authentication, #req.patientId())")
     public ResponseEntity<ObservationResponse> recordObservation(@Valid @RequestBody RecordObservationRequest req,
                                                                  @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(clinicalRecordService.recordObservation(req, user));

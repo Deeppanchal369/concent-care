@@ -30,6 +30,7 @@ public class ClinicalRecordService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AuditService auditService;
+    private final com.consentcare.core.security.ConsentSecurityEvaluator securityEvaluator;
 
     // --- ENCOUNTERS ---
     @Transactional
@@ -66,7 +67,14 @@ public class ClinicalRecordService {
                 .orElseThrow(() -> new IllegalArgumentException("Encounter not found: " + encounterId));
 
         Doctor doctor = doctorRepository.findByUserId(doctorUser.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Only verified doctors can amend clinical encounters."));
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Only verified doctors can amend clinical encounters."));
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthor = enc.getDoctorId() != null && enc.getDoctorId().equals(doctor.getId());
+        boolean hasConsent = securityEvaluator.canAccessPatient(auth, enc.getPatientId(), "CLINICAL_NOTES");
+        if (!isAuthor && !hasConsent) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have active consent or author rights to amend this clinical encounter.");
+        }
 
         enc.setAmended(true);
         enc.setAmendmentNotes(req.amendmentNotes().trim());
@@ -148,7 +156,12 @@ public class ClinicalRecordService {
                 .orElseThrow(() -> new IllegalArgumentException("Diagnosis not found: " + diagnosisId));
 
         Doctor doctor = doctorRepository.findByUserId(doctorUser.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Only verified doctors can update diagnosis status."));
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Only verified doctors can update diagnosis status."));
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (!securityEvaluator.canAccessPatient(auth, diag.getPatientId(), "DIAGNOSES")) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have active consent to update diagnoses for this patient.");
+        }
 
         diag.setStatus(req.status().trim().toUpperCase());
         if (req.notes() != null && !req.notes().isBlank()) {
@@ -170,10 +183,10 @@ public class ClinicalRecordService {
 
         return diagnosisRepository.findByPatientIdOrderByDiagnosedDateDesc(patientId).stream()
                 .filter(d -> !d.isArchived())
-                .map(diag -> {
-                    String docName = doctorRepository.findById(diag.getDoctorId())
-                            .map(d -> d.getUser().getFullName()).orElse("Doctor #" + diag.getDoctorId());
-                    return toDiagnosisResponse(diag, docName);
+                .map(d -> {
+                    String docName = doctorRepository.findById(d.getDoctorId())
+                            .map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId());
+                    return toDiagnosisResponse(d, docName);
                 })
                 .toList();
     }
@@ -184,10 +197,10 @@ public class ClinicalRecordService {
 
         Page<Diagnosis> page = diagnosisRepository.findByPatientIdAndIsArchivedFalseOrderByDiagnosedDateDesc(patientId, pageable);
         List<DiagnosisResponse> content = page.getContent().stream()
-                .map(diag -> {
-                    String docName = doctorRepository.findById(diag.getDoctorId())
-                            .map(d -> d.getUser().getFullName()).orElse("Doctor #" + diag.getDoctorId());
-                    return toDiagnosisResponse(diag, docName);
+                .map(d -> {
+                    String docName = doctorRepository.findById(d.getDoctorId())
+                            .map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId());
+                    return toDiagnosisResponse(d, docName);
                 })
                 .toList();
 
@@ -252,6 +265,15 @@ public class ClinicalRecordService {
     public LabRequestResponse updateLabRequestStatus(Long requestId, String status, User actor) {
         LabRequest lr = labRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Lab request not found: " + requestId));
+
+        if (actor.getRole() == Role.ADMIN) {
+            throw new org.springframework.security.access.AccessDeniedException("Administrators do not update clinical lab requests.");
+        }
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (!securityEvaluator.canAccessPatient(auth, lr.getPatientId(), "LAB_REPORTS")) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have active consent or delegation to update lab requests for this patient.");
+        }
+
         lr.setStatus(status);
         labRequestRepository.save(lr);
 
@@ -269,6 +291,14 @@ public class ClinicalRecordService {
     // --- LAB REPORTS ---
     @Transactional
     public LabReportResponse recordLabReport(RecordLabReportRequest req, User actor) {
+        if (actor.getRole() == Role.ADMIN) {
+            throw new org.springframework.security.access.AccessDeniedException("Administrators do not record clinical lab reports.");
+        }
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (!securityEvaluator.canAccessPatient(auth, req.patientId(), "LAB_REPORTS")) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have active consent to record lab reports for this patient.");
+        }
+
         Patient patient = patientRepository.findById(req.patientId())
                 .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + req.patientId()));
 
@@ -330,6 +360,14 @@ public class ClinicalRecordService {
     // --- OBSERVATIONS / VITALS ---
     @Transactional
     public ObservationResponse recordObservation(RecordObservationRequest req, User actor) {
+        if (actor.getRole() == Role.ADMIN) {
+            throw new org.springframework.security.access.AccessDeniedException("Administrators do not record clinical vitals.");
+        }
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (!securityEvaluator.canAccessPatientAny(auth, req.patientId())) {
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have care team authorization for this patient.");
+        }
+
         Patient patient = patientRepository.findById(req.patientId())
                 .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + req.patientId()));
 
