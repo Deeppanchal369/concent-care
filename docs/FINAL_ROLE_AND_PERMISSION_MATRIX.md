@@ -107,3 +107,4 @@
    Doctors cannot query charts or perform interventions for patients who have not explicitly granted consent. Revocation takes effect instantly across all microservices.
 4. **Care-Team Isolation**:
    Doctors cannot assign tasks to nurses outside their authorized team; nurses cannot view or act on tasks belonging to other nurses.
+

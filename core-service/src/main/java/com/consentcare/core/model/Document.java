@@ -82,6 +82,25 @@ public class Document {
     @Column(name = "archived_by")
     private Long archivedBy;
 
+    @Column(name = "admin_status", nullable = false, length = 30)
+    @Builder.Default
+    private String adminStatus = "ACTIVE"; // ACTIVE, UNDER_REVIEW, REMOVED_BY_ADMIN, ARCHIVED, RESTORED
+
+    @Column(name = "removal_reason", columnDefinition = "TEXT")
+    private String removalReason;
+
+    @Column(name = "removed_by")
+    private Long removedBy;
+
+    @Column(name = "removed_at")
+    private OffsetDateTime removedAt;
+
+    @Column(name = "restored_by")
+    private Long restoredBy;
+
+    @Column(name = "restored_at")
+    private OffsetDateTime restoredAt;
+
     @Column(name = "uploaded_at", nullable = false)
     private OffsetDateTime uploadedAt;
 }

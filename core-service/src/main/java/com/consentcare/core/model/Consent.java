@@ -56,8 +56,14 @@ public class Consent {
     @Builder.Default
     private ConsentStatus status = ConsentStatus.ACTIVE;
 
+    @Column(name = "granted_by", length = 100)
+    private String grantedBy;
+
+    @Column(name = "revoked_by", length = 100)
+    private String revokedBy;
+
     public boolean isCurrentlyActive() {
-        return !revoked && expiresAt != null && expiresAt.isAfter(OffsetDateTime.now());
+        return !revoked && status == ConsentStatus.ACTIVE && expiresAt != null && expiresAt.isAfter(OffsetDateTime.now());
     }
 }
 

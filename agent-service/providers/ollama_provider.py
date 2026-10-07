@@ -39,7 +39,7 @@ class OllamaProvider:
                     "stream": False,
                     "options": {
                         "temperature": 0.1,
-                        "num_predict": 1024
+                        "num_predict": 600
                     }
                 },
                 timeout=45.0

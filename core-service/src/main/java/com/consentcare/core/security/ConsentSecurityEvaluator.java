@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Enforces Object-Level and Attribute-Level Access Control (OWASP ASVS 5.0.0 V4.1, V4.2).
@@ -30,6 +31,7 @@ public class ConsentSecurityEvaluator {
     private final PatientRepository patientRepository;
     private final ConsentRepository consentRepository;
     private final DoctorNurseAssignmentRepository assignmentRepository;
+    private final com.consentcare.core.service.AuditService auditService;
 
     /**
      * Evaluates whether the authenticated actor is authorized to access a patient's
@@ -46,6 +48,7 @@ public class ConsentSecurityEvaluator {
         // 1. ADMIN has operational metadata access, but NOT clinical data access (Least Privilege)
         if (user.getRole() == Role.ADMIN) {
             log.warn("Security alert: Admin user '{}' attempted direct clinical access to patient {}", user.getUsername(), patientId);
+            auditService.logAccess(patientId, user, categoryName, "DENY", "Admin denied direct clinical data access under least privilege", true);
             return false;
         }
 
@@ -59,20 +62,38 @@ public class ConsentSecurityEvaluator {
         // 3. Doctor accessing patient with active consent for the specific category or ENTIRE_RECORD
         if (user.getRole() == Role.DOCTOR) {
             Doctor doctor = doctorRepository.findByUserId(user.getId()).orElse(null);
-            if (doctor == null) return false;
+            if (doctor == null) {
+                auditService.logAccess(patientId, user, categoryName, "DENY", "Doctor profile not found", false);
+                return false;
+            }
 
             ConsentCategory requestedCategory;
             try {
                 requestedCategory = ConsentCategory.valueOf(categoryName.toUpperCase());
             } catch (Exception e) {
                 log.warn("Invalid consent category '{}' evaluated for doctor '{}'", categoryName, user.getUsername());
+                auditService.logAccess(patientId, user, categoryName, "DENY", "Invalid consent category", false);
                 return false;
             }
 
             OffsetDateTime now = OffsetDateTime.now();
-            return consentRepository.findByPatientIdAndDoctorId(patientId, doctor.getId()).stream()
-                    .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now) &&
+            List<Consent> doctorConsents = consentRepository.findByPatientIdAndDoctorId(patientId, doctor.getId());
+
+            boolean allowed = doctorConsents.stream()
+                    .anyMatch(c -> !c.isRevoked() && c.getStatus() != ConsentStatus.EXPIRED && c.getExpiresAt().isAfter(now) &&
                             matchesCategory(c.getCategory(), requestedCategory));
+
+            if (!allowed) {
+                boolean hasExpired = doctorConsents.stream()
+                        .anyMatch(c -> c.getExpiresAt().isBefore(now) || c.getStatus() == ConsentStatus.EXPIRED);
+                String reason = hasExpired
+                        ? "Consent expired for category " + categoryName
+                        : "No active unrevoked consent for category " + categoryName;
+                auditService.logAccess(patientId, user, categoryName, "DENY", reason, false);
+                return false;
+            }
+
+            return true;
         }
 
         // 4. Nurse accessing patient assigned to their tasks or their doctor's active care team
@@ -161,8 +182,18 @@ public class ConsentSecurityEvaluator {
         if (doctor == null) return false;
 
         OffsetDateTime now = OffsetDateTime.now();
-        return consentRepository.findByPatientIdAndDoctorId(patientId, doctor.getId()).stream()
-                .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now));
+        List<Consent> doctorConsents = consentRepository.findByPatientIdAndDoctorId(patientId, doctor.getId());
+        boolean active = doctorConsents.stream()
+                .anyMatch(c -> !c.isRevoked() && c.getStatus() != ConsentStatus.EXPIRED && c.getExpiresAt().isAfter(now));
+
+        if (!active) {
+            boolean hasExpired = doctorConsents.stream()
+                    .anyMatch(c -> c.getExpiresAt().isBefore(now) || c.getStatus() == ConsentStatus.EXPIRED);
+            String reason = hasExpired ? "Doctor clinical chart access denied: Consent expired" : "Doctor chart access denied: No active consent";
+            auditService.logAccess(patientId, user, "GENERAL_CHART", "DENY", reason, false);
+        }
+
+        return active;
     }
 
     public boolean isOwningPatient(Authentication authentication, Long patientId) {

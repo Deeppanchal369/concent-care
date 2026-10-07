@@ -1,0 +1,15 @@
+{
+  "DOCUMENT_UPLOAD_FAILED": "Your document could not be uploaded. Please verify the file and try again.",
+  "DOCUMENT_TOO_LARGE": "The uploaded file exceeds the 20 MB size limit. Please choose a smaller file.",
+  "SESSION_EXPIRED": "Your login session has expired. Please sign in again.",
+  "UNAUTHORIZED": "You do not have permission to perform this medical action or view these records.",
+  "CONSENT_REQUIRED": "Active patient consent is required to access these clinical records.",
+  "CONSENT_EXPIRED": "Doctor access has expired. Please ask the patient to grant new permission.",
+  "PATIENT_NOT_FOUND": "The requested patient medical record could not be found.",
+  "NETWORK_ERROR": "Unable to connect to the ArogyaMitra server. Please check your network connection.",
+  "RATE_LIMIT_EXCEEDED": "Too many requests. Please wait a moment before trying again.",
+  "INTERNAL_ERROR": "A healthcare system error occurred. Please try again in a few moments.",
+  "LOGIN_FAILED": "Invalid username or password. Please check your credentials.",
+  "GENERIC": "Something went wrong. Please try again.",
+  "MISSING_REQUIRED_FIELDS": "Please fill in all required fields."
+}

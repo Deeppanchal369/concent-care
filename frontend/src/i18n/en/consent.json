@@ -1,0 +1,27 @@
+{
+  "title": "Consent & Access Control",
+  "subtitle": "You decide which healthcare professionals can view your personal health records",
+  "giveAccessTitle": "Give Doctor Access",
+  "doctorWantsAccess": "Doctor will be granted access to:",
+  "categories": {
+    "general": "Medical Reports & History",
+    "labs": "Laboratory & Blood Test Results",
+    "medications": "Prescriptions & Medications",
+    "risk": "Health Insights & Follow-up Risks"
+  },
+  "durationTitle": "How long should access remain active?",
+  "durations": {
+    "oneHour": "1 Hour (Demo / Quick Visit)",
+    "today": "Today (24 Hours)",
+    "sevenDays": "7 Days (Care Follow-up)",
+    "thirtyDays": "30 Days (Ongoing Treatment)"
+  },
+  "allowButton": "Allow Doctor Access",
+  "activeConsentsTitle": "Active Doctor Permissions",
+  "noActiveConsents": "No doctors currently have permission to access your records.",
+  "revokeConfirmTitle": "Revoke Doctor Access?",
+  "revokeConfirmDesc": "The doctor will immediately lose access to your medical history and test reports.",
+  "confirmRevoke": "Yes, Revoke Access",
+  "revokedNotice": "Doctor access was successfully revoked.",
+  "oneHourWarning": "Notice: This temporary permission will automatically expire in 1 hour."
+}

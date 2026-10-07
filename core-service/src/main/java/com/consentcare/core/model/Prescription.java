@@ -25,8 +25,14 @@ public class Prescription {
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
-    @Column(name = "doctor_id", nullable = false)
+    @Column(name = "doctor_id")
     private Long doctorId;
+
+    @Column(name = "source_document_id")
+    private Long sourceDocumentId;
+
+    @Column(name = "provenance_text")
+    private String provenanceText;
 
     @Column(name = "encounter_id")
     private Long encounterId;

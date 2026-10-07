@@ -1,0 +1,64 @@
+{
+  "title": "Hospital Administration",
+  "subtitle": "Operations, care teams, user governance, and security oversight",
+  "metrics": {
+    "totalUsers": "Active Accounts",
+    "careTeams": "Active Care Teams",
+    "docsUnderReview": "Documents Under Review",
+    "systemHealth": "Core Health"
+  },
+  "sections": {
+    "dashboard": "Dashboard",
+    "people": "People & Staff",
+    "careTeams": "Care Teams",
+    "documents": "Documents",
+    "oversight": "Oversight & Logs",
+    "models": "AI & Models"
+  },
+  "people": {
+    "title": "Staff & User Directory",
+    "addStaff": "Add Staff Member",
+    "addUserDesc": "Create accounts for doctors, nurses, and hospital staff",
+    "username": "Username",
+    "password": "Temporary Password",
+    "fullName": "Full Name",
+    "email": "Email",
+    "role": "Assigned Role",
+    "department": "Department",
+    "license": "Medical License Number",
+    "specialization": "Specialization",
+    "saveStaff": "Create Account"
+  },
+  "careTeams": {
+    "title": "Doctor & Nurse Care Teams",
+    "desc": "Allocate nurses to attending physicians for coordinated patient care",
+    "selectDoctor": "Select Doctor",
+    "allocatedNurses": "Allocated Nurses",
+    "allocateNurse": "Allocate Nurse",
+    "removeNurse": "Remove from Team"
+  },
+  "documentGovernance": {
+    "title": "Document Governance & Review",
+    "desc": "Manage patient clinical documents and remove inappropriate uploads with audit justification",
+    "reasonTitle": "Why are you removing this document?",
+    "reasons": {
+      "duplicate": "Duplicate Document",
+      "patientSupport": "Patient Support Request",
+      "dataCorrection": "Data Correction Required",
+      "securityReview": "Security / Privacy Review",
+      "other": "Other Administrative Reason"
+    },
+    "customReason": "Specific Administrative Reason",
+    "confirmRemoval": "Remove Document",
+    "documentRemovedNotice": "Your document was removed by an administrator. Please contact your clinic if you need more information."
+  },
+  "audit": {
+    "title": "System Audit & Compliance Log",
+    "desc": "Immutable cryptographic event trail for HIPAA/GDPR clinical compliance",
+    "actor": "Actor",
+    "action": "Action",
+    "resource": "Resource",
+    "result": "Result",
+    "timestamp": "Timestamp"
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "appName": "ArogyaMitra",
+  "tagline": "Your Digital Health Companion",
+  "nav": {
+    "home": "Home",
+    "myHealth": "My Health",
+    "patients": "Patients",
+    "myTasks": "My Tasks",
+    "tasks": "Tasks",
+    "documents": "Documents",
+    "doctors": "Doctors",
+    "careTeams": "Care Teams",
+    "people": "People",
+    "oversight": "Oversight",
+    "insights": "Health Insights",
+    "dashboard": "Dashboard",
+    "more": "More",
+    "permissions": "Permissions",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "help": "Help",
+    "language": "Language",
+    "audit": "Audit Explorer",
+    "models": "AI & Models",
+    "system": "System Health",
+    "availability": "Availability"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "remove": "Remove",
+    "restore": "Restore",
+    "search": "Search",
+    "back": "Back",
+    "close": "Close",
+    "view": "View",
+    "open": "Open",
+    "download": "Download",
+    "upload": "Upload",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "review": "Review",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "refresh": "Refresh",
+    "submit": "Submit",
+    "next": "Next",
+    "previous": "Previous",
+    "done": "Done",
+    "apply": "Apply",
+    "clear": "Clear",
+    "retry": "Try Again",
+    "select": "Select"
+  },
+  "roles": {
+    "patient": "Patient",
+    "doctor": "Doctor",
+    "nurse": "Nurse",
+    "admin": "Administrator"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "expiringSoon": "Expiring Soon",
+    "revoked": "Revoked",
+    "available": "Available",
+    "busy": "Busy",
+    "offDuty": "Off Duty",
+    "normal": "Normal",
+    "high": "High",
+    "low": "Low",
+    "critical": "Critical"
+  },
+  "loading": "Loading...",
+  "loadingSecurely": "Loading securely...",
+  "noData": "No data available.",
+  "pagination": {
+    "showing": "Showing {{from}} to {{to}} of {{total}}",
+    "perPage": "Per page:",
+    "page": "Page {{current}} of {{total}}"
+  },
+  "languageName": "English",
+  "otherLanguage": "ગુજરાતી",
+  "landing": {
+    "openWorkstation": "Open Workstation",
+    "signIn": "Sign In",
+    "createAccount": "Create Patient Account",
+    "heroBadge": "Patient-Governed Electronic Health Record System",
+    "heroTitle": "Healthcare You Govern. Records You Own.",
+    "heroSubtitle": "Share your medical history, reports, and diagnoses with your care team with complete confidence and instant control.",
+    "getStarted": "Get Started",
+    "watchDemo": "How It Works",
+    "watchDemoTooltip": "Watch 1-Minute Walkthrough Video",
+    "navAbout": "About",
+    "navHowItWorks": "How It Works",
+    "navCareCircle": "Care Circle",
+    "navSecurity": "Privacy & Consent"
+  },
+  "howItWorksModal": {
+    "title": "How ArogyaMitra Works",
+    "subtitle": "1-minute guide to patient-governed healthcare and care team coordination",
+    "close": "Close video modal",
+    "videoUnavailable": "How It Works video is currently unavailable.",
+    "videoFallbackHint": "You can follow the 4-step care flow below, or retry loading the video player.",
+    "retry": "Try Again",
+    "browserNotSupported": "Your browser does not support the video tag.",
+    "step1Title": "Patient Grants Consent",
+    "step1Desc": "You decide which doctors can access your health record and for how long.",
+    "step2Title": "Doctor Requests Specific Records",
+    "step2Desc": "Attending physicians submit access requests for specific clinical categories.",
+    "step3Title": "Patient Approves or Revokes",
+    "step3Desc": "Approve access with one tap, or revoke instantly whenever you choose.",
+    "step4Badge": "Step 4",
+    "step4Title": "Care Circle Coordinates",
+    "step4Desc": "Doctors, nurses, and patients work with verified, up-to-date health records."
+  },
+  "careCircle": {
+    "sectionTitle": "Patient-Centered Care Circle",
+    "sectionSubtitle": "Privacy-first collaboration between patients, doctors, and nurses",
+    "heroBadge": "Care Coordination",
+    "heroTitle": "Connected Care, Directed by the Patient",
+    "heroSubtitle": "A real-time coordination loop connecting patients, doctors, and nurses with clear accountability.",
+    "coreQuestionLabel": "Core Question",
+    "exploreFlow": "Explore Flow:",
+    "consentProtected": "Consent Protected",
+    "flowSuffix": "Flow",
+    "step1": "Step 1",
+    "step2": "Step 2",
+    "step3": "Step 3",
+    "roleInFlow": "Role in {{flow}}:",
+    "patient": {
+      "title": "Patient",
+      "roleTag": "Center of Care / Owns permissions",
+      "summary": "Retains master ownership of all records and authorizes clinical access.",
+      "bullets": [
+        "Authorizes or revokes granular access by category",
+        "Sets strict expiration windows for consultations",
+        "Reviews real-time audit ledger of all record views"
+      ]
+    },
+    "doctor": {
+      "title": "Doctor",
+      "roleTag": "Clinical Decision Maker / Requests records",
+      "summary": "Requests specific category access and enters verified diagnoses.",
+      "bullets": [
+        "Submits consent requests with explicit clinical purpose",
+        "Reviews longitudinal history and diagnostic labs",
+        "Delegates medication orders and vital checks to nurses"
+      ]
+    },
+    "nurse": {
+      "title": "Nurse",
+      "roleTag": "Care Coordinator / Supports tasks",
+      "summary": "Coordinates bedside care, documents vitals, and executes orders.",
+      "bullets": [
+        "Accepts and executes prioritized bedside care tasks",
+        "Documents medication administrations in real time",
+        "Maintains continuous vitals flowsheet with instant alerts"
+      ]
+    },
+    "streams": {
+      "permissions": {
+        "name": "Permissions Flow",
+        "question": "Who can see my information?",
+        "summary": "Patient-directed consent rules dictate who can view sensitive health information with time-limited authorization and instant revocation.",
+        "patientRole": "Grants or revokes granular access across clinical categories.",
+        "doctorRole": "Receives time-bound permission for approved categories only.",
+        "nurseRole": "Accesses records strictly required for assigned bedside tasks."
+      },
+      "records": {
+        "name": "Medical Records Flow",
+        "question": "What information is shared?",
+        "summary": "Diagnoses, lab test results, medication history, and vitals flow seamlessly between verified care team members without data silos.",
+        "patientRole": "Retains master ownership of all clinical history and notes.",
+        "doctorRole": "Reviews longitudinal chart and enters clinical diagnoses.",
+        "nurseRole": "Views authorized observations and current prescription orders."
+      },
+      "tasks": {
+        "name": "Care Tasks Flow",
+        "question": "What care actions are planned?",
+        "summary": "Attending physicians assign specific care tasks to available nurses, ensuring clear responsibility for patient care.",
+        "patientRole": "Sees active care plan and scheduled medication timings.",
+        "doctorRole": "Delegates medication doses, vital checks, and lab sample collection.",
+        "nurseRole": "Accepts tasks, documents dose administration, and records vitals."
+      },
+      "updates": {
+        "name": "Real-time Updates Flow",
+        "question": "What is happening right now?",
+        "summary": "Every access event, clinical measurement, and medication status change is logged into an immutable ledger and streamed in real time.",
+        "patientRole": "Receives instant alerts when records are accessed or shared.",
+        "doctorRole": "Gets notified of abnormal vitals or completed nurse tasks.",
+        "nurseRole": "Receives immediate notification of newly assigned physician orders."
+      }
+    }
+  }
+}

@@ -111,3 +111,4 @@ This script provides an end-to-end multi-persona walkthrough showcasing the core
    * Notice immediate enforcement: **HTTP 403 Forbidden ("Access Denied: Consent Revoked")**.
    * Longitudinal history, documents, risk assessments, and prescriptions are instantly locked.
 6. End of demonstration.
+

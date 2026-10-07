@@ -11,5 +11,6 @@ public interface DoctorNurseAssignmentRepository extends JpaRepository<DoctorNur
     List<DoctorNurseAssignment> findByNurseIdAndActiveTrue(Long nurseId);
     Optional<DoctorNurseAssignment> findByDoctorIdAndNurseId(Long doctorId, Long nurseId);
     boolean existsByDoctorIdAndNurseIdAndActiveTrue(Long doctorId, Long nurseId);
+    long countByActiveTrue();
 }
 

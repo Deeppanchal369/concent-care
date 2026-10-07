@@ -58,3 +58,4 @@
   * In parallel window, attempt same action as `nurse.david` to demonstrate optimistic lock rejection.
 * **To demonstrate Admin Operations & Privacy Boundary**:
   * Log in as `admin` -> View audit logs -> Confirm inability to view patient health charts.
+

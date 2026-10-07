@@ -18,6 +18,8 @@ ENV/
 
 # Environment & Local Secrets
 .env
+.env.*
+!.env.example
 *.local
 
 # IDEs
@@ -37,4 +39,9 @@ uploads/
 
 # Large Archives
 *.zip
+
+# Temporary & Browser Test Profiles
+temp_profile/
+**/temp_profile/
+*test_output*
 

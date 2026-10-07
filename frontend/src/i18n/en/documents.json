@@ -1,0 +1,48 @@
+{
+  "title": "Medical Documents & Reports",
+  "subtitle": "Securely store, upload, and review your diagnostic and clinical files",
+  "uploadButton": "Upload Medical Report",
+  "wizard": {
+    "step1Title": "What would you like to upload?",
+    "categories": {
+      "lab": "Lab Report / Blood Test",
+      "prescription": "Doctor Prescription",
+      "summary": "Doctor Visit Summary",
+      "imaging": "X-Ray / Scan / Imaging",
+      "other": "Other Medical Document"
+    },
+    "step2Title": "Choose File",
+    "choosePrompt": "Select a PDF or image file from your device",
+    "fileSelected": "File selected:",
+    "documentTitle": "Report Title (Optional)",
+    "description": "Short Description (Optional)",
+    "progressUploading": "Uploading document...",
+    "progressReading": "Reading report with AI assistant...",
+    "progressReady": "Your report is uploaded and ready!",
+    "success": "Your medical report was uploaded successfully."
+  },
+  "table": {
+    "name": "Report Name",
+    "category": "Category",
+    "size": "File Size",
+    "date": "Uploaded Date",
+    "uploadedBy": "Uploaded By",
+    "status": "AI Analysis",
+    "actions": "Actions"
+  },
+  "factReview": {
+    "title": "Review Extracted Medical Information",
+    "desc": "Our clinical assistant read this document. Please verify each item before adding it to the official medical record.",
+    "needsReview": "Pending Review",
+    "confirmed": "Confirmed into Health Record",
+    "rejected": "Rejected",
+    "factType": "Information Type",
+    "extractedValue": "Extracted Details",
+    "confirmAction": "Confirm & Add",
+    "rejectAction": "Reject",
+    "confirmAll": "Confirm All Facts",
+    "noFacts": "No candidate clinical facts available for review.",
+    "ocrWarning": "OCR / Scanned Document Review Warning",
+    "ocrWarningDesc": "One or more items originated from a scanned or low-confidence OCR extraction. Please verify the values against the original source document before confirming."
+  }
+}

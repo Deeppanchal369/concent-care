@@ -33,6 +33,8 @@ class ConsentSecurityEvaluatorTest {
     private ConsentRepository consentRepository;
     @Mock
     private DoctorNurseAssignmentRepository assignmentRepository;
+    @Mock
+    private com.consentcare.core.service.AuditService auditService;
 
     @InjectMocks
     private ConsentSecurityEvaluator evaluator;
@@ -212,6 +214,56 @@ class ConsentSecurityEvaluatorTest {
         when(assignmentRepository.findByNurseIdAndActiveTrue(30L)).thenReturn(List.of()); // No active doctor assignment
 
         assertFalse(evaluator.canAccessPatient(auth, 10L, "LAB_REPORTS"));
+    }
+
+    @Test
+    void testDoctorAllowedDuring1HourConsentValidity() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(doctorUser, null, doctorUser.getAuthorities());
+        when(doctorRepository.findByUserId(3L)).thenReturn(Optional.of(doctor));
+
+        Consent oneHourConsent = Consent.builder()
+                .id(101L)
+                .patientId(10L)
+                .doctorId(20L)
+                .category(ConsentCategory.MEDICAL_HISTORY)
+                .status(ConsentStatus.ACTIVE)
+                .grantedAt(OffsetDateTime.now())
+                .expiresAt(OffsetDateTime.now().plusHours(1))
+                .revoked(false)
+                .build();
+
+        when(consentRepository.findByPatientIdAndDoctorId(10L, 20L)).thenReturn(List.of(oneHourConsent));
+
+        assertTrue(evaluator.canAccessPatient(auth, 10L, "MEDICAL_HISTORY"));
+        assertTrue(evaluator.isDoctorForPatient(auth, 10L));
+    }
+
+    @Test
+    void testDoctorDeniedImmediatelyWhen1HourConsentExpires() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(doctorUser, null, doctorUser.getAuthorities());
+        when(doctorRepository.findByUserId(3L)).thenReturn(Optional.of(doctor));
+
+        // 1-hour consent that was granted 61 minutes ago (expired 1 minute ago)
+        OffsetDateTime grantedAt = OffsetDateTime.now().minusMinutes(61);
+        OffsetDateTime expiresAt = OffsetDateTime.now().minusMinutes(1);
+
+        Consent expiredOneHourConsent = Consent.builder()
+                .id(102L)
+                .patientId(10L)
+                .doctorId(20L)
+                .category(ConsentCategory.MEDICAL_HISTORY)
+                .status(ConsentStatus.ACTIVE) // Even if status flag not yet transitioned, time check denies
+                .grantedAt(grantedAt)
+                .expiresAt(expiresAt)
+                .revoked(false)
+                .build();
+
+        when(consentRepository.findByPatientIdAndDoctorId(10L, 20L)).thenReturn(List.of(expiredOneHourConsent));
+
+        assertFalse(evaluator.canAccessPatient(auth, 10L, "MEDICAL_HISTORY"));
+        assertFalse(evaluator.isDoctorForPatient(auth, 10L));
+        // Verify audit access log was written for denial
+        verify(auditService, atLeastOnce()).logAccess(eq(10L), eq(doctorUser), anyString(), eq("DENY"), anyString(), eq(false));
     }
 }
 

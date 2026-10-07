@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-teal: #028090;
   --color-teal-dark: #026e7a;
@@ -7,8 +9,198 @@
   --color-mint: #02C39A;
 }
 
+:root {
+  --bg-canvas: #F7FAF9;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+  --border-subtle: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+}
+
+html.dark {
+  color-scheme: dark;
+  --bg-canvas: #0b1329;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #243247;
+  --border-subtle: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+}
+
 body {
   margin: 0;
-  font-family: 'Segoe UI', Calibri, system-ui, sans-serif;
-  background-color: #F7FAF9;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Gujarati', sans-serif;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+:lang(gu), [lang="gu"], .font-gu {
+  font-family: 'Noto Sans Gujarati', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+html.dark body {
+  background-color: #0b1329;
+  color: #f1f5f9;
+}
+
+/* =========================================================================
+   HEALTHCARE DARK MODE REFINED SYSTEM
+   Calm, cohesive slate palette. Zero bright white/gray hover flashes.
+   ========================================================================= */
+
+/* Surfaces */
+:where(.dark, .dark *) .bg-white:not([class*="dark:bg-"]) {
+  background-color: #0f172a !important;
+}
+:where(.dark, .dark *) .bg-slate-50:not([class*="dark:bg-"]),
+:where(.dark, .dark *) .bg-gray-50:not([class*="dark:bg-"]) {
+  background-color: #162032 !important;
+}
+:where(.dark, .dark *) .bg-slate-100:not([class*="dark:bg-"]),
+:where(.dark, .dark *) .bg-gray-100:not([class*="dark:bg-"]) {
+  background-color: #1e293b !important;
+}
+
+/* Typography & Contrast */
+:where(.dark, .dark *) .text-slate-900:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-slate-800:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-900:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-800:not([class*="dark:text-"]) {
+  color: #f8fafc !important;
+}
+:where(.dark, .dark *) .text-slate-700:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-slate-600:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-700:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-600:not([class*="dark:text-"]) {
+  color: #cbd5e1 !important;
+}
+:where(.dark, .dark *) .text-slate-500:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-500:not([class*="dark:text-"]) {
+  color: #94a3b8 !important;
+}
+:where(.dark, .dark *) .text-slate-400:not([class*="dark:text-"]),
+:where(.dark, .dark *) .text-gray-400:not([class*="dark:text-"]) {
+  color: #64748b !important;
+}
+
+/* Borders & Separators */
+:where(.dark, .dark *) .border-slate-100:not([class*="dark:border-"]),
+:where(.dark, .dark *) .border-slate-200:not([class*="dark:border-"]),
+:where(.dark, .dark *) .border-gray-100:not([class*="dark:border-"]),
+:where(.dark, .dark *) .border-gray-200:not([class*="dark:border-"]) {
+  border-color: #334155 !important;
+}
+:where(.dark, .dark *) .divide-slate-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+:where(.dark, .dark *) .divide-slate-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+:where(.dark, .dark *) .divide-gray-100:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]),
+:where(.dark, .dark *) .divide-gray-200:not([class*="dark:divide-"]) > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}
+
+/* CRITICAL: Fix Hover States in Dark Mode — Never flash white or light gray */
+:where(.dark, .dark *) .hover\:bg-slate-50:hover,
+:where(.dark, .dark *) .hover\:bg-slate-100:hover,
+:where(.dark, .dark *) .hover\:bg-slate-200:hover,
+:where(.dark, .dark *) .hover\:bg-gray-50:hover,
+:where(.dark, .dark *) .hover\:bg-gray-100:hover,
+:where(.dark, .dark *) .hover\:bg-white:hover {
+  background-color: #243247 !important;
+  color: #f8fafc !important;
+}
+
+/* Table rows and headers in Dark Mode */
+:where(.dark, .dark *) table {
+  border-color: #334155;
+}
+:where(.dark, .dark *) thead th {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+:where(.dark, .dark *) tbody tr {
+  border-color: #243354 !important;
+}
+:where(.dark, .dark *) tbody tr:hover {
+  background-color: #1b263b !important;
+}
+
+/* Form Controls & Inputs */
+:where(.dark, .dark *) select:not([class*="dark:bg-"]),
+:where(.dark, .dark *) input:not([type="checkbox"]):not([type="radio"]):not([class*="dark:bg-"]),
+:where(.dark, .dark *) textarea:not([class*="dark:bg-"]) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+:where(.dark, .dark *) select:focus,
+:where(.dark, .dark *) input:focus,
+:where(.dark, .dark *) textarea:focus {
+  border-color: #028090 !important;
+  outline: none;
+}
+:where(.dark, .dark *) select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+/* Restrained dark shadows (no bright white glow) */
+:where(.dark, .dark *) .shadow,
+:where(.dark, .dark *) .shadow-sm,
+:where(.dark, .dark *) .shadow-md,
+:where(.dark, .dark *) .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Tactile micro-interactions for buttons and interactive controls */
+button, a[role="button"] {
+  touch-action: manipulation;
+}
+
+button:not(:disabled), .btn-tactile {
+  transition: all 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:not(:disabled):hover, .btn-tactile:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active, .btn-tactile:active:not(:disabled) {
+  transform: translateY(0.5px) scale(0.985);
+}
+
+/* Standard accessible focus ring */
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-teal, #028090);
+  outline-offset: 2px;
+}
+
+/* Subtle clean scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
 }

@@ -69,9 +69,12 @@ public class CareDtos {
     // Consent
     public record GrantConsentRequest(
             @NotNull Long doctorId,
-            @NotNull ConsentCategory category,
+            ConsentCategory category,
+            List<ConsentCategory> categories,
             @NotBlank String purpose,
-            @NotNull OffsetDateTime expiresAt
+            OffsetDateTime expiresAt,
+            Integer durationHours,
+            Integer durationMinutes
     ) {}
 
     public record ConsentResponse(
@@ -87,7 +90,9 @@ public class CareDtos {
             OffsetDateTime expiresAt,
             boolean revoked,
             OffsetDateTime revokedAt,
-            ConsentStatus status
+            ConsentStatus status,
+            String grantedBy,
+            String revokedBy
     ) {}
 
     // Encounter

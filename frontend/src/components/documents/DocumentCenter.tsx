@@ -5,6 +5,7 @@ import {
   type DocumentDetail,
   type Doctor,
 } from "../../api/client";
+import ClinicalFactReview from "./ClinicalFactReview";
 
 export interface DocumentCenterProps {
   patientId: number;
@@ -15,14 +16,14 @@ export interface DocumentCenterProps {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; bg: string; text: string; icon: string }> = {
-  LABORATORY_REPORT: { label: "Lab Report", bg: "bg-blue-50 border-blue-200", text: "text-blue-700", icon: "🧪" },
-  PRESCRIPTION: { label: "Prescription", bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-700", icon: "💊" },
-  IMAGING_REPORT: { label: "Imaging", bg: "bg-purple-50 border-purple-200", text: "text-purple-700", icon: "🔬" },
-  DISCHARGE_SUMMARY: { label: "Discharge Summary", bg: "bg-amber-50 border-amber-200", text: "text-amber-800", icon: "📋" },
-  PREVIOUS_CONSULTATION: { label: "Consultation", bg: "bg-cyan-50 border-cyan-200", text: "text-cyan-800", icon: "🩺" },
-  MEDICAL_CERTIFICATE: { label: "Medical Certificate", bg: "bg-indigo-50 border-indigo-200", text: "text-indigo-700", icon: "📜" },
-  DIAGNOSIS_REPORT: { label: "Previous Record", bg: "bg-rose-50 border-rose-200", text: "text-rose-700", icon: "📁" },
-  OTHER: { label: "Other", bg: "bg-slate-100 border-slate-200", text: "text-slate-700", icon: "📄" },
+  LABORATORY_REPORT: { label: "Lab Report", bg: "bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800", text: "text-blue-700 dark:text-blue-300", icon: "🧪" },
+  PRESCRIPTION: { label: "Prescription", bg: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", icon: "💊" },
+  IMAGING_REPORT: { label: "Imaging", bg: "bg-purple-50 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800", text: "text-purple-700 dark:text-purple-300", icon: "🔬" },
+  DISCHARGE_SUMMARY: { label: "Discharge Summary", bg: "bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800", text: "text-amber-800 dark:text-amber-300", icon: "📋" },
+  PREVIOUS_CONSULTATION: { label: "Consultation", bg: "bg-cyan-50 border-cyan-200 dark:bg-cyan-950/40 dark:border-cyan-800", text: "text-cyan-800 dark:text-cyan-300", icon: "🩺" },
+  MEDICAL_CERTIFICATE: { label: "Medical Certificate", bg: "bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800", text: "text-indigo-700 dark:text-indigo-300", icon: "📜" },
+  DIAGNOSIS_REPORT: { label: "Previous Record", bg: "bg-rose-50 border-rose-200 dark:bg-rose-950/40 dark:border-rose-800", text: "text-rose-700 dark:text-rose-300", icon: "📁" },
+  OTHER: { label: "Other", bg: "bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700", text: "text-slate-700 dark:text-slate-300", icon: "📄" },
 };
 
 export interface ParsedClinicalEntities {
@@ -95,6 +96,7 @@ export default function DocumentCenter({
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [contactAdminDoc, setContactAdminDoc] = useState<DocumentItem | null>(null);
 
   // Selected document for modal actions
   const [selectedDoc, setSelectedDoc] = useState<DocumentItem | null>(null);
@@ -381,15 +383,15 @@ export default function DocumentCenter({
   return (
     <div className="space-y-6">
       {/* Document Center Top Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-teal/10 text-teal flex items-center justify-center font-bold text-lg">
+            <span className="w-8 h-8 rounded-lg bg-teal/10 dark:bg-teal-950/50 text-teal dark:text-teal-400 flex items-center justify-center font-bold text-lg">
               📄
             </span>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Clinical Document Center</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Clinical Document Center</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Secure medical document repository with AI analysis and granular consent controls.
               </p>
             </div>
@@ -399,7 +401,7 @@ export default function DocumentCenter({
         {canUpload && (
           <button
             onClick={() => setShowUploadModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal text-white font-semibold text-sm rounded-xl hover:bg-teal-dark shadow-sm transition-all focus:outline-teal"
+            className="btn-tactile focus-ring inline-flex items-center gap-2 px-4 py-2.5 bg-teal text-white font-semibold text-sm rounded-xl hover:bg-teal-dark shadow-xs transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -410,7 +412,7 @@ export default function DocumentCenter({
       </div>
 
       {/* Search, Filter Pills & Sort Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -419,7 +421,7 @@ export default function DocumentCenter({
               placeholder="Search by document title, filename, or clinical notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-teal bg-slate-50/50"
+              className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-xl focus-ring bg-slate-50/50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400"
             />
             <svg
               className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
@@ -432,7 +434,7 @@ export default function DocumentCenter({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
               >
                 ✕
               </button>
@@ -441,11 +443,11 @@ export default function DocumentCenter({
 
           {/* Sort Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Sort by:</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-teal"
+              className="px-3 py-2 text-xs font-semibold border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus-ring"
             >
               <option value="uploadedAt,desc">Newest First</option>
               <option value="uploadedAt,asc">Oldest First</option>
@@ -459,10 +461,10 @@ export default function DocumentCenter({
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
           <button
             onClick={() => setSelectedCategory("ALL")}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap ${
+            className={`btn-tactile px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap ${
               selectedCategory === "ALL"
                 ? "bg-teal text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
             }`}
           >
             All Categories
@@ -471,10 +473,10 @@ export default function DocumentCenter({
             <button
               key={key}
               onClick={() => setSelectedCategory(key)}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              className={`btn-tactile px-3 py-1.5 rounded-lg font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                 selectedCategory === key
                   ? "bg-teal text-white shadow-xs"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               <span>{info.icon}</span>
@@ -496,17 +498,17 @@ export default function DocumentCenter({
 
       {/* Document List / Table */}
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-400">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center text-slate-400">
           <div className="inline-block animate-spin w-8 h-8 border-4 border-teal border-t-transparent rounded-full mb-3" />
           <p className="text-sm font-medium">Loading clinical documents...</p>
         </div>
       ) : sortedDocuments.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
             📂
           </div>
-          <h3 className="text-base font-bold text-slate-800">No Documents Found</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">No Documents Found</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1">
             {searchQuery || selectedCategory !== "ALL"
               ? "No documents match your active search filter. Try clearing the filter."
               : "No clinical documents have been uploaded to this chart yet."}
@@ -514,7 +516,7 @@ export default function DocumentCenter({
           {canUpload && (
             <button
               onClick={() => setShowUploadModal(true)}
-              className="mt-4 px-4 py-2 bg-teal text-white text-xs font-semibold rounded-lg hover:bg-teal-dark"
+              className="btn-tactile focus-ring mt-4 px-4 py-2 bg-teal text-white text-xs font-semibold rounded-lg hover:bg-teal-dark shadow-xs"
             >
               Upload First Document
             </button>
@@ -523,10 +525,10 @@ export default function DocumentCenter({
       ) : (
         <div className="space-y-4">
           {/* Desktop Table View */}
-          <div className="hidden lg:block bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <div className="hidden lg:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                <tr className="bg-slate-50/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
                   <th className="py-3.5 px-4">Document Title & File</th>
                   <th className="py-3.5 px-4">Category</th>
                   <th className="py-3.5 px-4">Uploaded</th>
@@ -536,26 +538,44 @@ export default function DocumentCenter({
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {sortedDocuments.map((doc) => {
                   const catInfo = CATEGORY_MAP[doc.category] || CATEGORY_MAP.OTHER;
                   const isShared = doc.sharingStatus === "SHARED" || (doc.sharedWithDoctorIds && doc.sharedWithDoctorIds.length > 0);
+                  const isRemovedByAdmin = doc.adminStatus === "REMOVED_BY_ADMIN";
 
                   return (
-                    <tr key={doc.id} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={doc.id} className={`hover:bg-slate-50/60 dark:hover:bg-slate-800/50 transition-colors ${isRemovedByAdmin ? "bg-rose-50/30 dark:bg-rose-950/20" : ""}`}>
                       {/* Title & File */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-start gap-2.5">
                           <span className="text-xl mt-0.5">{catInfo.icon}</span>
                           <div>
-                            <span className="font-bold text-slate-900 block text-sm">
-                              {doc.title || doc.fileName}
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`font-bold block text-sm ${isRemovedByAdmin ? "text-slate-500 dark:text-slate-400 line-through" : "text-slate-900 dark:text-slate-100"}`}>
+                                {doc.title || doc.fileName}
+                              </span>
+                              {isRemovedByAdmin && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                  <span>⛔</span>
+                                  <span>Removed by Admin</span>
+                                </span>
+                              )}
+                            </div>
                             <span className="text-slate-400 text-xs block">
                               {doc.originalFilename || doc.fileName} • {formatFileSize(doc.fileSize)}
                             </span>
-                            {doc.description && (
-                              <p className="text-xs text-slate-500 italic mt-0.5">{doc.description}</p>
+                            {isRemovedByAdmin ? (
+                              <div className="mt-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-800 dark:text-rose-200 max-w-md">
+                                <span className="font-semibold block text-[11px] uppercase tracking-wider text-rose-700 dark:text-rose-300">
+                                  Administrative Governance Notice
+                                </span>
+                                <p className="mt-0.5 font-medium">{doc.removalReason || "Administrative governance policy / unverified clinical artifact"}</p>
+                              </div>
+                            ) : (
+                              doc.description && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">{doc.description}</p>
+                              )
                             )}
                           </div>
                         </div>
@@ -569,23 +589,27 @@ export default function DocumentCenter({
                       </td>
 
                       {/* Uploaded */}
-                      <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         <div>{formatDate(doc.uploadedAt)}</div>
                         <span className="text-[11px] text-slate-400">{doc.uploadedByName}</span>
                       </td>
 
                       {/* Processing Status */}
                       <td className="py-3.5 px-4">
-                        {doc.processingStatus === "READY" || doc.processingStatus === "COMPLETED" ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-emerald-200">
+                        {isRemovedByAdmin ? (
+                          <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-rose-200 dark:border-rose-800">
+                            ⛔ Restricted
+                          </span>
+                        ) : doc.processingStatus === "READY" || doc.processingStatus === "COMPLETED" ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800">
                             ✓ Ready
                           </span>
                         ) : doc.processingStatus === "PROCESSING" ? (
-                          <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-amber-200 animate-pulse">
+                          <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-amber-200 dark:border-amber-800 animate-pulse">
                             ⏳ Processing...
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-rose-200">
+                          <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-rose-200 dark:border-rose-800">
                             ⚠ Failed
                           </span>
                         )}
@@ -593,27 +617,33 @@ export default function DocumentCenter({
 
                       {/* AI Status */}
                       <td className="py-3.5 px-4">
-                        <button
-                          onClick={() => handleViewAiAnalysis(doc)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors"
-                        >
-                          <span>✨</span>
-                          <span>{doc.aiStatus === "COMPLETED" ? "Insights Ready" : "Analyzing..."}</span>
-                        </button>
+                        {isRemovedByAdmin ? (
+                          <span className="text-slate-400 text-xs italic">Unavailable</span>
+                        ) : (
+                          <button
+                            onClick={() => handleViewAiAnalysis(doc)}
+                            className="btn-tactile inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 transition-colors"
+                          >
+                            <span>📋</span>
+                            <span>{doc.aiStatus === "COMPLETED" ? "Insights Ready" : "Analyzing..."}</span>
+                          </button>
+                        )}
                       </td>
 
                       {/* Sharing Status */}
                       <td className="py-3.5 px-4">
-                        {isShared ? (
+                        {isRemovedByAdmin ? (
+                          <span className="text-slate-400 text-xs italic">Revoked</span>
+                        ) : isShared ? (
                           <span
                             title={doc.sharedWithDoctorNames ? `Shared with: ${doc.sharedWithDoctorNames.join(", ")}` : "Shared with clinical team"}
-                            className="inline-flex items-center gap-1 text-teal bg-teal-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-teal-200 cursor-help"
+                            className="inline-flex items-center gap-1 text-teal dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 px-2.5 py-1 rounded-md text-xs font-semibold border border-teal-200 dark:border-teal-800 cursor-help"
                           >
                             <span>👥</span>
                             <span>Shared ({doc.sharedWithDoctorIds?.length || 1})</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-200">
+                          <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs font-semibold border border-slate-200 dark:border-slate-700">
                             <span>🔒</span>
                             <span>Private</span>
                           </span>
@@ -623,46 +653,59 @@ export default function DocumentCenter({
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="inline-flex items-center gap-1 justify-end">
-                          <button
-                            onClick={() => handlePreview(doc)}
-                            title="Preview Document"
-                            className="p-1.5 text-slate-600 hover:text-teal hover:bg-teal-50 rounded-lg transition-colors"
-                          >
-                            👁️
-                          </button>
-                          <button
-                            onClick={() => api.downloadDocument(doc.id, doc.originalFilename || doc.fileName)}
-                            title="Download Document"
-                            className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            ⬇️
-                          </button>
-                          {canEdit && (
+                          {isRemovedByAdmin ? (
                             <button
-                              onClick={() => handleOpenEdit(doc)}
-                              title="Rename / Categorize"
-                              className="p-1.5 text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              onClick={() => setContactAdminDoc(doc)}
+                              title="Contact Administrator"
+                              className="btn-tactile px-2.5 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 rounded-lg transition-colors inline-flex items-center gap-1"
                             >
-                              ✏️
+                              <span>🛡️</span>
+                              <span>Contact Admin</span>
                             </button>
-                          )}
-                          {canShare && (
-                            <button
-                              onClick={() => handleOpenShare(doc)}
-                              title="Manage Doctor Sharing"
-                              className="p-1.5 text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                            >
-                              🔗
-                            </button>
-                          )}
-                          {canArchive && (
-                            <button
-                              onClick={() => handleOpenArchive(doc)}
-                              title="Archive Document"
-                              className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                            >
-                              🗑️
-                            </button>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handlePreview(doc)}
+                                title="Preview Document"
+                                className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:text-teal dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              >
+                                👁️
+                              </button>
+                              <button
+                                onClick={() => api.downloadDocument(doc.id, doc.originalFilename || doc.fileName)}
+                                title="Download Document"
+                                className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                              >
+                                ⬇️
+                              </button>
+                              {canEdit && (
+                                <button
+                                  onClick={() => handleOpenEdit(doc)}
+                                  title="Rename / Categorize"
+                                  className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                  ✏️
+                                </button>
+                              )}
+                              {canShare && (
+                                <button
+                                  onClick={() => handleOpenShare(doc)}
+                                  title="Manage Doctor Sharing"
+                                  className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                  🔗
+                                </button>
+                              )}
+                              {canArchive && (
+                                <button
+                                  onClick={() => handleOpenArchive(doc)}
+                                  title="Archive Document"
+                                  className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
@@ -678,14 +721,15 @@ export default function DocumentCenter({
             {sortedDocuments.map((doc) => {
               const catInfo = CATEGORY_MAP[doc.category] || CATEGORY_MAP.OTHER;
               const isShared = doc.sharingStatus === "SHARED" || (doc.sharedWithDoctorIds && doc.sharedWithDoctorIds.length > 0);
+              const isRemovedByAdmin = doc.adminStatus === "REMOVED_BY_ADMIN";
 
               return (
-                <div key={doc.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+                <div key={doc.id} className={`bg-white dark:bg-slate-900 border ${isRemovedByAdmin ? "border-rose-200 dark:border-rose-900/60 bg-rose-50/20" : "border-slate-200 dark:border-slate-800"} rounded-2xl p-4 shadow-xs space-y-3`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{catInfo.icon}</span>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
+                        <h4 className={`text-sm font-bold line-clamp-1 ${isRemovedByAdmin ? "text-slate-500 line-through" : "text-slate-900 dark:text-slate-100"}`}>
                           {doc.title || doc.fileName}
                         </h4>
                         <span className="text-[11px] text-slate-400">
@@ -698,51 +742,86 @@ export default function DocumentCenter({
                     </span>
                   </div>
 
-                  {doc.description && (
-                    <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded-lg">
-                      {doc.description}
-                    </p>
+                  {isRemovedByAdmin ? (
+                    <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-800 dark:text-rose-200 space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold text-rose-700 dark:text-rose-300">
+                        <span>⛔</span>
+                        <span>Removed by Administrator</span>
+                      </div>
+                      <p className="font-medium">{doc.removalReason || "Administrative governance policy / unverified clinical artifact"}</p>
+                      <button
+                        onClick={() => setContactAdminDoc(doc)}
+                        className="btn-tactile mt-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg w-full text-center"
+                      >
+                        Contact Administrator
+                      </button>
+                    </div>
+                  ) : (
+                    doc.description && (
+                      <p className="text-xs text-slate-600 dark:text-slate-300 italic bg-slate-50 dark:bg-slate-800/60 p-2 rounded-lg">
+                        {doc.description}
+                      </p>
+                    )
                   )}
 
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2">
-                      {isShared ? (
-                        <span className="inline-flex items-center gap-1 text-teal bg-teal-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-teal-200">
-                          👥 Shared
+                      {isRemovedByAdmin ? (
+                        <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-rose-200 dark:border-rose-800">
+                          ⛔ Restricted
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">
-                          🔒 Private
-                        </span>
+                        <>
+                          {isShared ? (
+                            <span className="inline-flex items-center gap-1 text-teal dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-teal-200 dark:border-teal-800">
+                              👥 Shared
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px] font-semibold">
+                              🔒 Private
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleViewAiAnalysis(doc)}
+                            className="btn-tactile text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded text-[11px] font-semibold border border-purple-200 dark:border-purple-800"
+                          >
+                            📋 Insights
+                          </button>
+                        </>
                       )}
-                      <button
-                        onClick={() => handleViewAiAnalysis(doc)}
-                        className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-[11px] font-semibold border border-purple-200"
-                      >
-                        ✨ Insights
-                      </button>
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handlePreview(doc)}
-                        className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-xs"
-                      >
-                        👁️ Preview
-                      </button>
-                      <button
-                        onClick={() => api.downloadDocument(doc.id, doc.originalFilename || doc.fileName)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-xs"
-                      >
-                        ⬇️ Save
-                      </button>
-                      {canShare && (
+                      {isRemovedByAdmin ? (
                         <button
-                          onClick={() => handleOpenShare(doc)}
-                          className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg text-xs"
+                          onClick={() => setContactAdminDoc(doc)}
+                          className="btn-tactile px-2.5 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg"
                         >
-                          🔗 Share
+                          🛡️ Contact Admin
                         </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handlePreview(doc)}
+                            className="btn-tactile p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-xs"
+                          >
+                            👁️ Preview
+                          </button>
+                          <button
+                            onClick={() => api.downloadDocument(doc.id, doc.originalFilename || doc.fileName)}
+                            className="btn-tactile p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg text-xs"
+                          >
+                            ⬇️ Save
+                          </button>
+                          {canShare && (
+                            <button
+                              onClick={() => handleOpenShare(doc)}
+                              className="btn-tactile p-1.5 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg text-xs"
+                            >
+                              🔗 Share
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -752,10 +831,10 @@ export default function DocumentCenter({
           </div>
 
           {/* Server-Side Pagination Bar */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">
             <div>
-              Showing <span className="font-semibold">{sortedDocuments.length}</span> of{" "}
-              <span className="font-semibold">{pageInfo.totalElements}</span> documents
+              Showing <span className="font-semibold text-slate-900 dark:text-slate-100">{sortedDocuments.length}</span> of{" "}
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{pageInfo.totalElements}</span> documents
               {pageInfo.totalPages > 1 && (
                 <span className="ml-1 text-slate-400">
                   (Page {pageInfo.pageNumber + 1} of {pageInfo.totalPages})
@@ -767,14 +846,14 @@ export default function DocumentCenter({
               <button
                 disabled={pageInfo.pageNumber === 0 || loading}
                 onClick={() => loadDocuments(pageInfo.pageNumber - 1)}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                className="btn-tactile px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Previous
               </button>
               <button
                 disabled={pageInfo.pageNumber >= pageInfo.totalPages - 1 || loading}
                 onClick={() => loadDocuments(pageInfo.pageNumber + 1)}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                className="btn-tactile px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Next
               </button>
@@ -788,12 +867,12 @@ export default function DocumentCenter({
       {/* ========================================================================= */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">Upload Clinical Document</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Upload Clinical Document</h3>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg"
               >
                 ✕
               </button>
@@ -802,7 +881,7 @@ export default function DocumentCenter({
             <form onSubmit={handleUploadSubmit} className="space-y-4">
               {/* File Selector */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Select Medical File (PDF, JPG, PNG, DOC, DOCX up to 20MB)
                 </label>
                 <input
@@ -810,13 +889,13 @@ export default function DocumentCenter({
                   required
                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                   onChange={handleFileChange}
-                  className="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal/10 file:text-teal hover:file:bg-teal/20 cursor-pointer border border-slate-200 rounded-xl p-2"
+                  className="w-full text-xs text-slate-600 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal/10 dark:file:bg-teal-950/40 file:text-teal dark:file:text-teal-300 hover:file:bg-teal/20 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-800"
                 />
               </div>
 
               {/* Title */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Document Title
                 </label>
                 <input
@@ -825,19 +904,19 @@ export default function DocumentCenter({
                   placeholder="e.g. Comprehensive Metabolic Panel - Sept 2026"
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus-ring bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400"
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Clinical Category
                 </label>
                 <select
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus-ring"
                 >
                   {Object.entries(CATEGORY_MAP).map(([key, info]) => (
                     <option key={key} value={key}>
@@ -849,7 +928,7 @@ export default function DocumentCenter({
 
               {/* Description */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Clinical Description / Notes (Optional)
                 </label>
                 <textarea
@@ -857,13 +936,13 @@ export default function DocumentCenter({
                   placeholder="e.g. Fasting blood work drawn prior to appointment..."
                   value={uploadDesc}
                   onChange={(e) => setUploadDesc(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus-ring bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400"
                 />
               </div>
 
               {/* Progress Indicator */}
               {uploading && (
-                <div className="bg-teal/10 border border-teal/20 rounded-xl p-3 text-xs text-teal flex items-center gap-2">
+                <div className="bg-teal/10 dark:bg-teal-950/40 border border-teal/20 dark:border-teal-800 rounded-xl p-3 text-xs text-teal dark:text-teal-300 flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-teal border-t-transparent rounded-full animate-spin" />
                   <span>{uploadProgress || "Uploading..."}</span>
                 </div>
@@ -875,14 +954,14 @@ export default function DocumentCenter({
                   type="button"
                   disabled={uploading}
                   onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
+                  className="btn-tactile px-4 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading || !uploadFile}
-                  className="px-5 py-2 text-xs font-semibold bg-teal text-white rounded-lg hover:bg-teal-dark disabled:opacity-50 transition-all"
+                  className="btn-tactile focus-ring px-5 py-2 text-xs font-semibold bg-teal text-white rounded-lg hover:bg-teal-dark disabled:opacity-50 transition-all shadow-xs"
                 >
                   {uploading ? "Uploading..." : "Save Document"}
                 </button>
@@ -897,32 +976,32 @@ export default function DocumentCenter({
       {/* ========================================================================= */}
       {showEditModal && selectedDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-900">Edit Document Details</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Edit Document Details</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Document Title</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Document Title</label>
                 <input
                   type="text"
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus-ring bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Category</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Category</label>
                 <select
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus-ring"
                 >
                   {Object.entries(CATEGORY_MAP).map(([key, info]) => (
                     <option key={key} value={key}>
@@ -933,12 +1012,12 @@ export default function DocumentCenter({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Notes</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Notes</label>
                 <textarea
                   rows={2}
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-teal"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus-ring bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
@@ -947,14 +1026,14 @@ export default function DocumentCenter({
                   type="button"
                   disabled={savingEdit}
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
+                  className="btn-tactile px-4 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="px-5 py-2 text-xs font-semibold bg-teal text-white rounded-lg hover:bg-teal-dark"
+                  className="btn-tactile focus-ring px-5 py-2 text-xs font-semibold bg-teal text-white rounded-lg hover:bg-teal-dark shadow-xs"
                 >
                   {savingEdit ? "Saving..." : "Save Changes"}
                 </button>
@@ -969,36 +1048,36 @@ export default function DocumentCenter({
       {/* ========================================================================= */}
       {showShareModal && selectedDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Manage Document Access</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  File: <span className="font-semibold text-slate-700">{selectedDoc.title || selectedDoc.fileName}</span>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Manage Document Access</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  File: <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedDoc.title || selectedDoc.fileName}</span>
                 </p>
               </div>
-              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 ✕
               </button>
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Attending Clinical Staff
               </h4>
 
               {doctors.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No doctors found in clinic directory.</p>
               ) : (
-                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto pr-1">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-64 overflow-y-auto pr-1">
                   {doctors.map((doc) => {
                     const isSharedWithDoc = selectedDoc.sharedWithDoctorIds?.includes(doc.id);
 
                     return (
                       <div key={doc.id} className="py-2.5 flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-bold text-slate-800">{doc.fullName}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{doc.fullName}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             {doc.specialization} • {doc.departmentName || "General Medicine"}
                           </p>
                         </div>
@@ -1006,14 +1085,14 @@ export default function DocumentCenter({
                         {isSharedWithDoc ? (
                           <button
                             onClick={() => handleRevokeShare(doc.id)}
-                            className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                            className="btn-tactile px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 rounded-lg transition-colors"
                           >
                             Revoke Share
                           </button>
                         ) : (
                           <button
                             onClick={() => handleShareWithDoctor(doc.id)}
-                            className="px-3 py-1.5 text-xs font-semibold text-teal bg-teal/10 hover:bg-teal/20 rounded-lg transition-colors"
+                            className="btn-tactile px-3 py-1.5 text-xs font-semibold text-teal dark:text-teal-300 bg-teal/10 dark:bg-teal-950/40 hover:bg-teal/20 dark:hover:bg-teal-900/60 rounded-lg transition-colors"
                           >
                             Share Access
                           </button>
@@ -1025,7 +1104,7 @@ export default function DocumentCenter({
               )}
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl text-xs text-slate-600 flex items-start gap-2">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl text-xs text-slate-600 dark:text-slate-300 flex items-start gap-2 border border-slate-200 dark:border-slate-700">
               <span className="text-base">🛡️</span>
               <p>
                 Sharing grants the specified doctor view and download access to this document. All access events are recorded in the patient's immutable audit log.
@@ -1035,7 +1114,7 @@ export default function DocumentCenter({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowShareModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                className="btn-tactile px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg"
               >
                 Close
               </button>
@@ -1049,21 +1128,21 @@ export default function DocumentCenter({
       {/* ========================================================================= */}
       {showPreviewModal && selectedDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {selectedDoc.title || selectedDoc.fileName}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {selectedDoc.contentType} • {formatFileSize(selectedDoc.fileSize)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => api.downloadDocument(selectedDoc.id, selectedDoc.originalFilename || selectedDoc.fileName)}
-                  className="px-3 py-1.5 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-dark flex items-center gap-1"
+                  className="btn-tactile px-3 py-1.5 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-dark flex items-center gap-1 shadow-xs"
                 >
                   <span>⬇️</span> Download File
                 </button>
@@ -1073,7 +1152,7 @@ export default function DocumentCenter({
                     if (previewUrl) window.URL.revokeObjectURL(previewUrl);
                     setPreviewUrl(null);
                   }}
-                  className="text-slate-400 hover:text-slate-700 text-lg px-2"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg px-2"
                 >
                   ✕
                 </button>
@@ -1081,7 +1160,7 @@ export default function DocumentCenter({
             </div>
 
             {/* Content Body */}
-            <div className="flex-1 bg-slate-100 p-4 overflow-auto flex items-center justify-center">
+            <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-4 overflow-auto flex items-center justify-center">
               {previewLoading ? (
                 <div className="text-center text-slate-400">
                   <div className="inline-block animate-spin w-8 h-8 border-4 border-teal border-t-transparent rounded-full mb-2" />
@@ -1092,24 +1171,24 @@ export default function DocumentCenter({
                   <iframe
                     src={previewUrl}
                     title="PDF Document Preview"
-                    className="w-full h-full bg-white rounded-xl shadow-inner border border-slate-200"
+                    className="w-full h-full bg-white dark:bg-slate-900 rounded-xl shadow-inner border border-slate-200 dark:border-slate-800"
                   />
                 ) : selectedDoc.contentType?.includes("image") ? (
                   <img
                     src={previewUrl}
                     alt={selectedDoc.title}
-                    className="max-h-full max-w-full object-contain rounded-xl shadow-sm bg-white p-2"
+                    className="max-h-full max-w-full object-contain rounded-xl shadow-sm bg-white dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800"
                   />
                 ) : (
-                  <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md text-center space-y-3">
+                  <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm max-w-md text-center space-y-3 border border-slate-200 dark:border-slate-800">
                     <span className="text-4xl">📄</span>
-                    <h4 className="font-bold text-slate-800">Word Document Preview</h4>
-                    <p className="text-xs text-slate-500">
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100">Word Document Preview</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       DOC and DOCX files require client-side word processors. Click below to download and view the original file safely.
                     </p>
                     <button
                       onClick={() => api.downloadDocument(selectedDoc.id, selectedDoc.originalFilename || selectedDoc.fileName)}
-                      className="px-4 py-2 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-dark"
+                      className="btn-tactile px-4 py-2 bg-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-dark shadow-xs"
                     >
                       Download Document
                     </button>
@@ -1124,24 +1203,25 @@ export default function DocumentCenter({
       )}
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* MODAL 5: AI Insights / Clinical Extraction */}
       {/* ========================================================================= */}
       {showAiModal && selectedDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-100 overflow-hidden">
-            <div className="px-6 py-4 bg-gradient-to-r from-teal/10 via-indigo-50 to-purple-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-teal/20 text-teal flex items-center justify-center text-lg font-bold">
-                  ✨
+                <div className="w-9 h-9 rounded-xl bg-teal/10 dark:bg-teal-950/50 text-teal dark:text-teal-400 flex items-center justify-center text-lg font-bold">
+                  📋
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Clinical Document AI Analysis</h3>
-                  <p className="text-xs text-slate-600">
-                    Extracted from <span className="font-semibold">{selectedDoc.title || selectedDoc.fileName}</span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">AI Clinical Document Analysis</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    Extracted findings from <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedDoc.title || selectedDoc.fileName}</span>
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowAiModal(false)} className="text-slate-400 hover:text-slate-600 p-1 text-lg">
+              <button onClick={() => setShowAiModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 text-lg">
                 ✕
               </button>
             </div>
@@ -1159,47 +1239,58 @@ export default function DocumentCenter({
                   <>
                     {/* Metadata strip */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <span className="text-[11px] font-semibold text-slate-500 uppercase block tracking-wider">Classification</span>
-                        <span className="text-sm font-bold text-slate-800">
+                      <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block tracking-wider">Classification</span>
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
                           {docDetail.aiAnalysis.reportType || selectedDoc.category.replace(/_/g, " ")}
                         </span>
                       </div>
-                      <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <span className="text-[11px] font-semibold text-slate-500 uppercase block tracking-wider">AI Engine</span>
-                        <span className="text-sm font-bold text-teal">
-                          {docDetail.aiAnalysis.modelProvider ? `${docDetail.aiAnalysis.modelProvider} (${docDetail.aiAnalysis.modelVersion || "local"})` : "Ollama (llama3.2:1b)"}
-                        </span>
+                      <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block tracking-wider">Analysis Type</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-sm font-bold text-teal dark:text-teal-400">
+                            AI Document Analysis
+                          </span>
+                          <details className="inline-block relative text-left">
+                            <summary className="cursor-pointer text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-medium underline list-none">
+                              (Engine Details)
+                            </summary>
+                            <div className="absolute left-0 top-full mt-1 z-20 w-56 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg text-[11px] text-slate-700 dark:text-slate-300">
+                              <span className="font-semibold block text-slate-900 dark:text-white mb-0.5">Provider:</span>
+                              {docDetail.aiAnalysis.modelProvider ? `${docDetail.aiAnalysis.modelProvider} (${docDetail.aiAnalysis.modelVersion || "local"})` : "Ollama (llama3.2:1b)"}
+                            </div>
+                          </details>
+                        </div>
                       </div>
-                      <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <span className="text-[11px] font-semibold text-slate-500 uppercase block tracking-wider">Status</span>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full mt-0.5">
+                      <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block tracking-wider">Status</span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full mt-0.5">
                           ● {docDetail.aiAnalysis.status || docDetail.aiStatus || "READY"}
                         </span>
                       </div>
                     </div>
 
                     {/* Summary */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+                      <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <span>📝</span> Grounded Clinical Summary
                       </h4>
-                      <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                      <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
                         {docDetail.aiAnalysis.summaryText}
                       </p>
                     </div>
 
                     {/* Lab Results Table */}
-                    <div className="border border-slate-200 rounded-xl overflow-hidden">
-                      <div className="bg-slate-100/80 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                      <div className="bg-slate-100/80 dark:bg-slate-800/80 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                           <span>🧪</span> Identified Lab Values ({labResults.length})
                         </h4>
                       </div>
                       {labResults.length > 0 ? (
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">
                               <tr>
                                 <th className="px-4 py-2">Test Name</th>
                                 <th className="px-4 py-2">Result Value</th>
@@ -1207,21 +1298,21 @@ export default function DocumentCenter({
                                 <th className="px-4 py-2">Clinical Flag</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 text-slate-700">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                               {labResults.map((lr, idx) => (
-                                <tr key={idx} className="hover:bg-slate-50/50">
-                                  <td className="px-4 py-2.5 font-medium text-slate-900">{lr.test}</td>
-                                  <td className="px-4 py-2.5 font-bold text-slate-900">{lr.value}</td>
-                                  <td className="px-4 py-2.5 text-slate-500">{lr.unit || "—"}</td>
+                                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                  <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-slate-100">{lr.test}</td>
+                                  <td className="px-4 py-2.5 font-bold text-slate-900 dark:text-slate-100">{lr.value}</td>
+                                  <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{lr.unit || "—"}</td>
                                   <td className="px-4 py-2.5">
                                     <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                                       lr.flag === "HIGH" || lr.flag === "CRITICAL"
-                                        ? "bg-rose-100 text-rose-800"
+                                        ? "bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300"
                                         : lr.flag === "LOW"
-                                        ? "bg-blue-100 text-blue-800"
+                                        ? "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300"
                                         : lr.flag === "ABNORMAL"
-                                        ? "bg-amber-100 text-amber-800"
-                                        : "bg-slate-100 text-slate-700"
+                                        ? "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                                     }`}>
                                       {lr.flag || "NORMAL"}
                                     </span>
@@ -1232,7 +1323,7 @@ export default function DocumentCenter({
                           </table>
                         </div>
                       ) : (
-                        <div className="p-4 text-center text-xs text-slate-500">
+                        <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
                           No quantitative laboratory test values detected in document.
                         </div>
                       )}
@@ -1241,16 +1332,16 @@ export default function DocumentCenter({
                     {/* Detected Medications & Diagnoses Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Medications */}
-                      <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800/60">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                           <span>💊</span> Detected Medications ({medications.length})
                         </h4>
                         {medications.length > 0 ? (
                           <div className="space-y-2">
                             {medications.map((m, idx) => (
-                              <div key={idx} className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs">
-                                <div className="font-bold text-emerald-950">{m.name}</div>
-                                <div className="text-emerald-800 text-[11px] mt-0.5">
+                              <div key={idx} className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800 text-xs">
+                                <div className="font-bold text-emerald-950 dark:text-emerald-200">{m.name}</div>
+                                <div className="text-emerald-800 dark:text-emerald-400 text-[11px] mt-0.5">
                                   {m.dosage && <span className="mr-2">Dose: {m.dosage}</span>}
                                   {m.frequency && <span>Freq: {m.frequency}</span>}
                                 </div>
@@ -1263,14 +1354,14 @@ export default function DocumentCenter({
                       </div>
 
                       {/* Diagnoses & Conditions */}
-                      <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-white dark:bg-slate-800/60">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                           <span>📋</span> Diagnoses & Conditions ({diagnoses.length})
                         </h4>
                         {diagnoses.length > 0 ? (
                           <div className="flex flex-wrap gap-1.5">
                             {diagnoses.map((d, idx) => (
-                              <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-900 text-xs font-medium">
+                              <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 text-indigo-900 dark:text-indigo-300 text-xs font-medium">
                                 {d}
                               </span>
                             ))}
@@ -1279,16 +1370,16 @@ export default function DocumentCenter({
                           <p className="text-xs text-slate-400 italic">No explicit diagnoses detected.</p>
                         )}
 
-                        <div className="mt-4 pt-3 border-t border-slate-100">
-                          <span className="text-[11px] font-semibold text-slate-500 uppercase block mb-1">Symptoms Noted</span>
-                          <span className="text-xs text-slate-700">{symptoms}</span>
+                        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase block mb-1">Symptoms Noted</span>
+                          <span className="text-xs text-slate-700 dark:text-slate-300">{symptoms}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Uncertain Items if any */}
                     {uncertainItems.length > 0 && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
+                      <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-900 dark:text-amber-200">
                         <span className="font-bold block mb-1">⚠️ Ambiguous or Low-Confidence Terms:</span>
                         <ul className="list-disc list-inside space-y-0.5 text-[11px]">
                           {uncertainItems.map((item, idx) => (
@@ -1300,38 +1391,48 @@ export default function DocumentCenter({
 
                     {/* Collapsible Extracted Raw Text */}
                     {docDetail.extractedText && (
-                      <details className="border border-slate-200 rounded-xl p-3 bg-slate-50/50 text-xs">
-                        <summary className="font-semibold text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                      <details className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-800/40 text-xs">
+                        <summary className="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:text-slate-900 dark:hover:text-slate-100 select-none">
                           View Extracted Raw Text (OCR / PDF)
                         </summary>
-                        <pre className="mt-2.5 p-3 bg-white border border-slate-200 rounded-lg text-[11px] text-slate-700 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+                        <pre className="mt-2.5 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
                           {docDetail.extractedText}
                         </pre>
                       </details>
                     )}
 
                     {/* Mandatory Clinical Advisory Disclaimer */}
-                    <div className="bg-teal/5 border border-teal/20 rounded-xl p-3 text-xs text-slate-700 flex items-start gap-2.5">
+                    <div className="bg-teal/5 dark:bg-teal-950/30 border border-teal/20 dark:border-teal-800/60 rounded-xl p-3 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
                       <span className="text-base">🛡️</span>
                       <div>
-                        <p className="font-semibold text-slate-900 mb-0.5">Clinical Decision Support Advisory</p>
-                        <p className="text-[11px] text-slate-600 leading-normal">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100 mb-0.5">Clinical Decision Support Advisory</p>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-normal">
                           {docDetail.aiAnalysis.disclaimer || "Research decision-support only. This is not a medical diagnosis or treatment recommendation. Always cross-reference AI-extracted findings with the original uploaded document."}
                         </p>
                       </div>
                     </div>
+
+                    {/* Safe Clinical Fact Normalization & Review Bridge */}
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+                      <ClinicalFactReview
+                        documentId={docDetail.id}
+                        onFactsConfirmed={() => {
+                          loadDocuments();
+                        }}
+                      />
+                    </div>
                   </>
                 );
               })() : (
-                <div className="text-center py-12 text-slate-500 text-xs space-y-2">
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs space-y-2">
                   <span className="text-3xl block">⏳</span>
-                  <p className="font-semibold text-slate-700">AI analysis is processing or temporarily unavailable.</p>
-                  <p className="text-slate-500">You can still review and download the original uploaded document.</p>
+                  <p className="font-semibold text-slate-700 dark:text-slate-200">AI analysis is processing or temporarily unavailable.</p>
+                  <p className="text-slate-500 dark:text-slate-400">You can still review and download the original uploaded document.</p>
                 </div>
               )}
             </div>
 
-            <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               {docDetail && (
                 <button
                   onClick={async () => {
@@ -1341,14 +1442,14 @@ export default function DocumentCenter({
                       alert("Failed to download document: " + (e?.message || "Access denied"));
                     }
                   }}
-                  className="px-4 py-2 text-xs font-semibold bg-teal/10 text-teal hover:bg-teal/20 rounded-lg flex items-center gap-1.5 transition-colors"
+                  className="btn-tactile px-4 py-2 text-xs font-semibold bg-teal/10 dark:bg-teal-950/50 text-teal dark:text-teal-300 hover:bg-teal/20 dark:hover:bg-teal-900/50 rounded-lg flex items-center gap-1.5 transition-colors"
                 >
                   <span>📄</span> Download / View Original Source File
                 </button>
               )}
               <button
                 onClick={() => setShowAiModal(false)}
-                className="px-5 py-2 text-xs font-semibold bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                className="btn-tactile px-5 py-2 text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
               >
                 Close
               </button>
@@ -1362,19 +1463,19 @@ export default function DocumentCenter({
       {/* ========================================================================= */}
       {showArchiveConfirm && selectedDoc && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mx-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl mx-auto">
               🗑️
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-bold text-slate-900">Archive Clinical Document?</h3>
-              <p className="text-xs text-slate-500">
-                Are you sure you want to archive <span className="font-semibold text-slate-700">{selectedDoc.title || selectedDoc.fileName}</span>?
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Archive Clinical Document?</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Are you sure you want to archive <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedDoc.title || selectedDoc.fileName}</span>?
               </p>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600">
-              <p className="font-semibold text-slate-800 mb-0.5">Audit Trail Guarantee:</p>
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-600 dark:text-slate-300">
+              <p className="font-semibold text-slate-800 dark:text-slate-100 mb-0.5">Audit Trail Guarantee:</p>
               <p>
                 In compliance with medical record retention regulations, the file is archived non-destructively and removed from active charts, while preserving full audit history.
               </p>
@@ -1383,15 +1484,75 @@ export default function DocumentCenter({
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setShowArchiveConfirm(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="btn-tactile px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmArchive}
-                className="px-5 py-2 text-xs font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-700"
+                className="btn-tactile px-5 py-2 text-xs font-semibold bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-xs"
               >
                 Confirm Archive
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 6: Contact Administrator (Document Governance) */}
+      {/* ========================================================================= */}
+      {contactAdminDoc && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 dark:border-slate-800 space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                <span className="text-xl">🛡️</span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Document Governance Notice</h3>
+              </div>
+              <button
+                onClick={() => setContactAdminDoc(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+              <div>
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Document</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{contactAdminDoc.title || contactAdminDoc.fileName}</span>
+              </div>
+
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl space-y-1">
+                <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider block">Administrative Reason</span>
+                <p className="text-rose-800 dark:text-rose-200 font-medium">
+                  {contactAdminDoc.removalReason || "Administrative governance policy / unverified clinical artifact"}
+                </p>
+                {contactAdminDoc.removedAt && (
+                  <p className="text-[10px] text-rose-500 dark:text-rose-400 pt-1">
+                    Action recorded: {formatDate(contactAdminDoc.removedAt)}
+                  </p>
+                )}
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl space-y-1.5 text-slate-600 dark:text-slate-300">
+                <span className="font-semibold text-slate-800 dark:text-slate-200 block">How to Request Document Review / Restoration:</span>
+                <p>If you believe this record was removed in error or have updated clinical documentation, please contact Hospital Records Governance:</p>
+                <div className="pt-1.5 space-y-1 text-xs">
+                  <p><span className="font-semibold text-slate-700 dark:text-slate-300">Email:</span> <a href={`mailto:admin@consentcare.hospital?subject=Document%20Restoration%20Appeal%20DOC-%23${contactAdminDoc.id}`} className="text-teal hover:underline font-mono">admin@consentcare.hospital</a></p>
+                  <p><span className="font-semibold text-slate-700 dark:text-slate-300">Reference:</span> <code className="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono">DOC-{contactAdminDoc.id}</code></p>
+                  <p><span className="font-semibold text-slate-700 dark:text-slate-300">Direct Desk:</span> Health Information Management Desk (Ext 401)</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setContactAdminDoc(null)}
+                className="btn-tactile px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

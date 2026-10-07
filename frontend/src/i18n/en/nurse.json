@@ -1,0 +1,40 @@
+{
+  "todaysWork": "Today's Work",
+  "availability": {
+    "title": "Your Duty Status",
+    "available": "Available to receive work",
+    "availableSubtitle": "You are ready to accept new patient care tasks",
+    "busy": "Currently busy — Patient task in progress",
+    "busySubtitle": "Other doctors will see you are currently engaged",
+    "offDuty": "Off Duty",
+    "offDutySubtitle": "Not available for task assignment"
+  },
+  "tasks": {
+    "assignedBy": "Assigned by",
+    "patient": "Patient",
+    "dueTime": "Due Time",
+    "priority": "Priority",
+    "instructions": "Doctor Instructions",
+    "accept": "Accept Task",
+    "start": "Start Task",
+    "recordVitals": "Record Vitals",
+    "complete": "Complete Task",
+    "taskCompleted": "Task completed successfully.",
+    "noTasks": "No tasks right now. You're all caught up!"
+  },
+  "vitals": {
+    "title": "Record Patient Vitals",
+    "selectVital": "Vital Type",
+    "value": "Value",
+    "unit": "Unit",
+    "notes": "Observations & Clinical Notes",
+    "save": "Save Vitals",
+    "types": {
+      "bp": "Blood Pressure (Systolic/Diastolic)",
+      "pulse": "Heart Rate / Pulse",
+      "temp": "Body Temperature",
+      "spo2": "Oxygen Saturation (SpO2)",
+      "glucose": "Blood Glucose"
+    }
+  }
+}

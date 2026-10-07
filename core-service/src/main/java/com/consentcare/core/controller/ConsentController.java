@@ -35,6 +35,21 @@ public class ConsentController {
         return ResponseEntity.ok(consentService.grantConsentDirectly(req, patientUser));
     }
 
+    @PostMapping("/grant-batch")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<List<ConsentResponse>> grantConsentsDirectlyBatch(
+            @Valid @RequestBody GrantConsentRequest req,
+            @AuthenticationPrincipal User patientUser) {
+        return ResponseEntity.ok(consentService.grantConsentsDirectlyBatch(req, patientUser));
+    }
+
+    @PostMapping("/process-expirations")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PATIENT', 'DOCTOR')")
+    public ResponseEntity<java.util.Map<String, Object>> processExpirations() {
+        int count = consentService.processConsentExpirations();
+        return ResponseEntity.ok(java.util.Map.of("processedCount", count, "message", "Consent expirations processed successfully"));
+    }
+
     @PostMapping({"/{id}/revoke", "/revoke/{id}"})
     @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
     public ResponseEntity<ConsentResponse> revokeConsent(

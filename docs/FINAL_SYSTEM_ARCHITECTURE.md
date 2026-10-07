@@ -263,3 +263,4 @@ Nurse 1 Browser             Core Gateway            PostgreSQL           Nurse 2
 | **Availability** | Stateless containerized services, health check endpoints with Docker automatic restart policies. |
 | **Sovereignty** | Attribute-based consent evaluation enforced at the controller method level before any JPA query executes. |
 | **Traceability** | MDC request logging attaching UUID correlation IDs to every incoming HTTP request through backend logs. |
+

@@ -11,8 +11,8 @@ const PatientDetail = lazy(() => import("./pages/PatientDetail"));
 const Admin = lazy(() => import("./pages/Admin"));
 
 const LoadingFallback = () => (
-  <div className="flex h-screen items-center justify-center bg-slate-50">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+  <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 transition-colors">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-600 border-t-transparent"></div>
   </div>
 );
 

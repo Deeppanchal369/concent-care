@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export type LogoVariant = "icon" | "wordmark" | "full" | "appIcon" | "loadingMark";
 
 interface LogoProps {
@@ -9,7 +11,7 @@ interface LogoProps {
 }
 
 /**
- * ConsentCare Brand Identity
+ * ArogyaMitra Brand Identity
  * 
  * Communicates: Privacy (protective shield contour) + Care (central heart nexus) + Connected Health (care circle nodes).
  * Avoids: generic red crosses, AI robots, neon gradients, and stock hospital iconography.
@@ -56,18 +58,22 @@ export function LogoIcon({ size = 36, className = "" }: { size?: number; classNa
 }
 
 export function LogoAppIcon({ size = 48, className = "" }: { size?: number; className?: string }) {
+  const { t } = useTranslation();
   return (
     <div
       style={{ width: size, height: size }}
       className={`relative rounded-2xl bg-gradient-to-b from-teal-700 to-teal-850 p-2 shadow-md border border-teal-600/30 flex items-center justify-center ${className}`}
-      aria-label="ConsentCare App Icon"
+      aria-label={t("common.appName", "ArogyaMitra")}
     >
       <LogoIcon size={Math.round(size * 0.72)} />
     </div>
   );
 }
 
-export function LoadingMark({ size = 44, message = "Loading securely..." }: { size?: number; message?: string }) {
+export function LoadingMark({ size = 44, message }: { size?: number; message?: string }) {
+  const { t } = useTranslation();
+  const displayMessage = message ?? t("loadingSecurely", "Loading securely...");
+
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-4" role="status" aria-live="polite">
       <div className="relative flex items-center justify-center">
@@ -83,12 +89,12 @@ export function LoadingMark({ size = 44, message = "Loading securely..." }: { si
           <LogoIcon size={Math.round(size * 0.75)} />
         </div>
       </div>
-      {message && (
+      {displayMessage && (
         <span className="text-xs font-medium text-slate-500 tracking-normal">
-          {message}
+          {displayMessage}
         </span>
       )}
-      <span className="sr-only">Loading ConsentCare healthcare session</span>
+      <span className="sr-only">{t("loading", "Loading...")}</span>
     </div>
   );
 }
@@ -102,6 +108,9 @@ export function Wordmark({
   dark?: boolean;
   showBadge?: boolean;
 }) {
+  const { i18n } = useTranslation();
+  const isGu = i18n.language === "gu";
+
   const textSizes = {
     sm: "text-base",
     md: "text-xl",
@@ -119,7 +128,15 @@ export function Wordmark({
   return (
     <div className="inline-flex items-center gap-1.5 tracking-tight font-sans">
       <span className={`font-extrabold ${textSizes[size]} ${dark ? "text-white" : "text-slate-900"}`}>
-        Consent<span className="text-teal-600">Care</span>
+        {isGu ? (
+          <>
+            આરોગ્ય<span className="text-teal-600">મિત્ર</span>
+          </>
+        ) : (
+          <>
+            Arogya<span className="text-teal-600">Mitra</span>
+          </>
+        )}
       </span>
       {showBadge && (
         <span

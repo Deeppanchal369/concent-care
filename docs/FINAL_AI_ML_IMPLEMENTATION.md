@@ -157,3 +157,4 @@ To preserve academic and technical integrity, the following implementation bound
 | **Generative Clinical Chatbot** | **NOT IMPLEMENTED** | ConsentCare focuses on structured EHR workflow, not unconstrained chat. |
 | **Full FHIR R4 Server Certification** | **PARTIALLY IMPLEMENTED** | Provides FHIR-aligned JSON models; does not claim full ONC certification. |
 | **Cloud Production Deployment** | **NOT PERFORMED** | Local Docker Compose deployment verified; cloud hosting is future work. |
+

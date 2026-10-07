@@ -1,0 +1,31 @@
+{
+  "title": "Help & Quick Guides",
+  "subtitle": "Simple step-by-step instructions for using ArogyaMitra",
+  "replayTour": "Replay Workstation Tour",
+  "patientGuide": {
+    "title": "Patient Guide",
+    "step1": "1. Create Account & Sign In: Use your username and password to access your health portal safely.",
+    "step2": "2. Upload Medical Reports: Tap 'Upload a Medical Report' to add lab tests, blood work, or prescriptions.",
+    "step3": "3. Give Doctor Access: Tap 'Give Doctor Access' to allow an attending physician to view your records."
+  },
+  "doctorGuide": {
+    "title": "Doctor Guide",
+    "step1": "1. Find Patients: Search by patient name on your home screen or view recent patients.",
+    "step2": "2. Health History: Review a unified chronological timeline of all encounters, labs, and medications.",
+    "step3": "3. Health Insights: Expand Past, Present, Trends, and Possible Risks synthesized by clinical models.",
+    "step4": "4. Care Team Tasks: Delegate vitals collection directly to your allocated care-team nurses."
+  },
+  "nurseGuide": {
+    "title": "Nurse Guide",
+    "step1": "1. View Today's Tasks: Check your task queue for pending clinical assignments.",
+    "step2": "2. Accept & Start: Tap 'Accept Task' to claim, then 'Start Task' when attending the patient.",
+    "step3": "3. Record Vitals: Enter blood pressure, pulse, temperature, or glucose.",
+    "step4": "4. Complete Task: Tap 'Complete Task' with clinical observations to update the patient chart."
+  },
+  "adminGuide": {
+    "title": "Administrator Guide",
+    "step1": "1. Staff Management: Create doctor, nurse, and staff accounts from the People tab.",
+    "step2": "2. Care Teams: Allocate nurses to attending physicians to form collaborative care teams.",
+    "step3": "3. Document Governance: Review uploaded documents and remove duplicates or inappropriate files with mandatory audit reasons."
+  }
+}

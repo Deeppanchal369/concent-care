@@ -1,10 +1,12 @@
 package com.consentcare.core.controller;
 
 import com.consentcare.core.dto.DocumentDtos.*;
+import com.consentcare.core.dto.FactDtos.*;
 import com.consentcare.core.dto.PageResponse;
 import com.consentcare.core.model.Document;
 import com.consentcare.core.model.DocumentCategory;
 import com.consentcare.core.model.User;
+import com.consentcare.core.service.ClinicalFactNormalizationService;
 import com.consentcare.core.service.DocumentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final ClinicalFactNormalizationService clinicalFactNormalizationService;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentResponse> upload(
@@ -148,5 +151,28 @@ public class DocumentController {
                 .header("X-Content-Type-Options", "nosniff")
                 .header("Content-Security-Policy", "default-src 'self'")
                 .body(resource);
+    }
+
+    @GetMapping("/{id}/facts")
+    public ResponseEntity<List<ExtractedFactResponse>> getDocumentFacts(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User actor) {
+        return ResponseEntity.ok(clinicalFactNormalizationService.getFactsForDocument(id, actor));
+    }
+
+    @PostMapping("/{id}/facts/confirm")
+    public ResponseEntity<FactConfirmationSummary> confirmDocumentFacts(
+            @PathVariable Long id,
+            @Valid @RequestBody ConfirmFactsBatchRequest req,
+            @AuthenticationPrincipal User actor) {
+        return ResponseEntity.ok(clinicalFactNormalizationService.confirmFacts(id, req, actor));
+    }
+
+    @GetMapping("/patient/{patientId}/pending-facts")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'DOCUMENTS')")
+    public ResponseEntity<List<ExtractedFactResponse>> getPatientPendingFacts(
+            @PathVariable Long patientId,
+            @AuthenticationPrincipal User actor) {
+        return ResponseEntity.ok(clinicalFactNormalizationService.getPendingFactsForPatient(patientId, actor));
     }
 }

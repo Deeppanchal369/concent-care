@@ -51,6 +51,7 @@ public class DocumentService {
     private final ConsentSecurityEvaluator securityEvaluator;
     private final DocumentSecurityValidator documentSecurityValidator;
     private final WebClient agentServiceClient;
+    private final ClinicalFactNormalizationService clinicalFactNormalizationService;
 
     @Value("${consentcare.storage.upload-dir}")
     private String uploadDir;
@@ -213,6 +214,12 @@ public class DocumentService {
             doc.setAiStatus(ProcessingStatus.READY);
             documentRepository.save(doc);
 
+            try {
+                clinicalFactNormalizationService.createCandidateFactsFromAnalysis(doc, analysis);
+            } catch (Exception ex) {
+                log.error("Failed to stage candidate facts for document {}", doc.getId(), ex);
+            }
+
             auditService.logAction("SYSTEM", "AI_AGENT", "DOCUMENT_AI_ANALYSIS", "Document", doc.getId().toString(), "SUCCESS", "Completed grounded AI document extraction via " + modelProvider);
 
             patientRepository.findById(doc.getPatientId()).ifPresent(p -> {
@@ -258,6 +265,12 @@ public class DocumentService {
 
             doc.setAiStatus(ProcessingStatus.NEEDS_REVIEW);
             documentRepository.save(doc);
+
+            try {
+                clinicalFactNormalizationService.createCandidateFactsFromAnalysis(doc, analysis);
+            } catch (Exception ex) {
+                log.error("Failed to stage fallback candidate facts for document {}", doc.getId(), ex);
+            }
         } catch (Exception e) {
             log.error("Failed to execute fallback analysis", e);
         }
@@ -315,6 +328,61 @@ public class DocumentService {
         String sharingStatus = shares.isEmpty() ? "PRIVATE" : "SHARED";
 
         auditService.logAction(actor.getUsername(), actor.getRole().name(), "VIEW_DOCUMENT_DETAIL", "Document", documentId.toString(), "SUCCESS", "Viewed document metadata & AI extraction");
+
+        return new DocumentDetailResponse(
+                doc.getId(),
+                doc.getId(),
+                doc.getPatientId(),
+                doc.getTitle() != null ? doc.getTitle() : doc.getFileName(),
+                doc.getOriginalFilename() != null ? doc.getOriginalFilename() : doc.getFileName(),
+                doc.getFileName(),
+                doc.getContentType(),
+                doc.getContentType(),
+                doc.getFileSize(),
+                doc.getFileSize(),
+                doc.getCategory(),
+                doc.getDescription(),
+                doc.getProcessingStatus(),
+                doc.getAiStatus(),
+                doc.getExtractedText(),
+                analysisDto,
+                doc.getUploadedAt(),
+                doc.getUploadedBy(),
+                resolveUploaderName(doc.getUploadedBy()),
+                sharingStatus,
+                doctorIds,
+                doctorNames,
+                doc.isArchived()
+        );
+    }
+
+    public DocumentDetailResponse getDocumentDetailForAdmin(Long documentId, User admin) {
+        Document doc = documentRepository.findById(documentId)
+                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
+
+        AiDocumentAnalysis analysis = aiAnalysisRepository.findByDocumentId(documentId).orElse(null);
+        AiDocumentAnalysisDto analysisDto = null;
+        if (analysis != null) {
+            analysisDto = new AiDocumentAnalysisDto(
+                    analysis.getId(),
+                    analysis.getDocumentId(),
+                    analysis.getReportType(),
+                    analysis.getSummaryText(),
+                    analysis.getEntitiesJson(),
+                    analysis.getConfidenceScore(),
+                    analysis.getDisclaimer(),
+                    analysis.getModelProvider(),
+                    analysis.getModelVersion(),
+                    analysis.getStatus(),
+                    analysis.getStructuredResultJson(),
+                    analysis.getCreatedAt()
+            );
+        }
+
+        List<DocumentShare> shares = documentShareRepository.findByDocumentId(documentId);
+        List<Long> doctorIds = shares.stream().map(s -> s.getDoctor().getId()).toList();
+        List<String> doctorNames = shares.stream().map(s -> s.getDoctor().getUser().getFullName()).toList();
+        String sharingStatus = shares.isEmpty() ? "PRIVATE" : "SHARED";
 
         return new DocumentDetailResponse(
                 doc.getId(),

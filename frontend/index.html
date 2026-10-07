@@ -5,10 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0D9488" />
-    <meta name="description" content="ConsentCare — Patient-Governed Electronic Health Record (EHR) System. Your health information, shared with the people caring for you — when you choose." />
-    <title>ConsentCare</title>
+    <meta name="description" content="ArogyaMitra — Patient-Governed Electronic Health Record (EHR) System. Your health information, shared with the people caring for you — when you choose." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>ArogyaMitra EHR</title>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('cc_theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark) || (saved === 'system' && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          var savedLang = localStorage.getItem('cc_lang');
+          if (savedLang) {
+            document.documentElement.lang = savedLang;
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-teal-100 selection:text-teal-900">
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-teal-100 selection:text-teal-900 dark:selection:bg-teal-900/50 dark:selection:text-teal-200 transition-colors duration-150">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

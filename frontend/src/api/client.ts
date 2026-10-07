@@ -169,6 +169,8 @@ export interface Consent {
   revoked: boolean;
   revokedAt: string | null;
   status: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "REVOKED";
+  grantedBy?: string;
+  revokedBy?: string | null;
 }
 
 export interface AccessRequest {
@@ -329,6 +331,179 @@ export interface DocumentItem {
   isArchived?: boolean;
   extractedText?: string | null;
   aiAnalysis?: AiDocumentAnalysis | null;
+  adminStatus?: "ACTIVE" | "UNDER_REVIEW" | "REMOVED_BY_ADMIN" | "ARCHIVED" | "RESTORED" | string;
+  removalReason?: string | null;
+  removedBy?: number | null;
+  removedByName?: string | null;
+  removedAt?: string | null;
+}
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  lockedUsers: number;
+  doctorsCount: number;
+  nursesCount: number;
+  patientsCount: number;
+  adminsCount: number;
+  totalConsentsCount: number;
+  activeConsentsCount: number;
+  expiredConsentsCount: number;
+  revokedConsentsCount: number;
+  totalEncountersCount: number;
+  totalLabReportsCount: number;
+  totalPrescriptionsCount: number;
+  totalVitalsCount: number;
+  totalDocumentsCount: number;
+  activeDocumentsCount: number;
+  removedDocumentsCount: number;
+  pendingAiDocumentsCount: number;
+  activeAllocationsCount: number;
+  activeNurseTasksCount: number;
+  completedNurseTasksCount: number;
+  totalAuditLogsCount: number;
+  totalDocumentActionsCount: number;
+  totalAiRunsCount: number;
+}
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  fullName: string;
+  role: "ADMIN" | "DOCTOR" | "NURSE" | "PATIENT";
+  active: boolean;
+  createdAt: string;
+}
+
+export interface DoctorCareTeam {
+  id: number;
+  userId: number;
+  fullName: string;
+  email: string;
+  specialization: string;
+  departmentName: string;
+  licenseNumber: string;
+  contactNumber: string;
+  nurses: {
+    id: number;
+    userId: number;
+    fullName: string;
+    email: string;
+    departmentName: string;
+    availabilityStatus: string;
+    contactNumber: string;
+  }[];
+}
+
+export interface NurseDetail {
+  id: number;
+  userId: number;
+  fullName: string;
+  email: string;
+  departmentName: string;
+  availabilityStatus: string;
+  contactNumber: string;
+  activeTasksCount: number;
+  assignedDoctorNames: string[];
+}
+
+export interface PatientAdminOverview {
+  id: number;
+  linkedUserId: number | null;
+  fullName: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string | null;
+  email: string | null;
+  registeredAt: string;
+  documentCount: number;
+  consentCount: number;
+}
+
+export interface DocumentAdminOverview {
+  id: number;
+  patientId: number;
+  patientName: string;
+  title: string;
+  originalFilename: string;
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+  category: string;
+  adminStatus: string;
+  removalReason: string | null;
+  removedBy: number | null;
+  removedByName: string | null;
+  removedAt: string | null;
+  uploadedAt: string;
+}
+
+export interface AdminDocumentAction {
+  id: number;
+  documentId: number;
+  adminUserId: number;
+  adminUsername: string;
+  actionType: string;
+  administrativeReason: string;
+  timestamp: string;
+  result: string;
+}
+
+export interface DatasetRegistryItem {
+  id: number;
+  datasetName: string;
+  datasetType: string;
+  geography: string;
+  clinicalPeriod: string;
+  patientCount: number;
+  recordCount: number;
+  accessStatus: string;
+  trainingStatus: string;
+  validationStatus: string;
+  modelVersion: string;
+  metricsJson: string | null;
+  limitations: string;
+  sourceCitation: string;
+  isPrimaryResearch: boolean;
+  createdAt: string;
+}
+
+export interface ModelRegistryItem {
+  id: number;
+  modelKey: string;
+  modelName: string;
+  version: string;
+  algorithm: string;
+  datasetName: string;
+  targetName: string;
+  predictionHorizon: string;
+  featuresJson: string;
+  metricsJson: string | null;
+  featureImportancesJson: string | null;
+  limitations: string;
+  status: string;
+  trainedAt: string | null;
+}
+
+export interface LongitudinalClinicalInsights {
+  patient_id: number;
+  generated_at: string;
+  model_version: string;
+  active_dataset: string;
+  primary_research_dataset: string;
+  risk_assessment: Record<string, unknown>;
+  past_clinical_trajectory: string;
+  current_clinical_status: string;
+  trend_progression_analysis: string;
+  future_risk_stratification: string;
+  symptoms_to_monitor: string[];
+  evidence_provenance: string[];
+  requires_clinical_review: boolean;
+  clinical_disclaimer: string;
+  synthesis_type?: string;
+  model_provider?: string;
 }
 
 export type DocumentDetail = DocumentItem;
@@ -378,6 +553,49 @@ export interface NotificationItem {
   referenceId: string | null;
   readStatus: boolean;
   createdAt: string;
+}
+
+export type FactType = "ENCOUNTER" | "DIAGNOSIS" | "MEDICATION" | "LAB_REPORT" | "OBSERVATION";
+export type FactStatus = "PENDING" | "CONFIRMED" | "EDITED" | "REJECTED";
+
+export interface ExtractedFact {
+  id: number;
+  documentId: number;
+  patientId: number;
+  factType: FactType;
+  fieldName: string;
+  extractedData: Record<string, any>;
+  confirmedData: Record<string, any> | null;
+  status: FactStatus;
+  confidenceLevel: string;
+  canonicalEntityType: string | null;
+  canonicalEntityId: number | null;
+  reviewedByUserId: number | null;
+  reviewedByUserName: string | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+  provenanceText: string;
+  createdAt: string;
+}
+
+export interface ConfirmFactDecision {
+  factId: number;
+  action: "CONFIRM" | "EDIT" | "REJECT";
+  editedData?: Record<string, any> | null;
+  rejectionReason?: string | null;
+}
+
+export interface ConfirmFactsBatchRequest {
+  decisions: ConfirmFactDecision[];
+}
+
+export interface FactConfirmationSummary {
+  totalProcessed: number;
+  confirmedCount: number;
+  editedCount: number;
+  rejectedCount: number;
+  duplicatesSkipped: number;
+  message: string;
 }
 
 export interface AuditLogItem {
@@ -448,6 +666,17 @@ export const api = {
   listPatientConsents: (patientId: number) => request<Consent[]>(`/api/consents/patient/${patientId}`),
   grantConsent: (data: { doctorId: number; category: string; purpose: string; expiresAt: string }) =>
     request<Consent>("/api/consents/grant", { method: "POST", body: JSON.stringify(data) }),
+  grantConsentsDirectly: (data: {
+    doctorId: number;
+    category?: string;
+    categories?: string[];
+    purpose?: string;
+    expiresAt?: string;
+    durationHours?: number;
+    durationMinutes?: number;
+  }) => request<Consent[]>("/api/consents/grant-batch", { method: "POST", body: JSON.stringify(data) }),
+  processConsentExpirations: () =>
+    request<{ processedCount: number; message: string }>("/api/consents/process-expirations", { method: "POST" }),
   revokeConsent: (consentId: number) =>
     request<Consent>(`/api/consents/${consentId}/revoke`, { method: "POST" }),
   revokeDoctorAccess: (doctorId: number) =>
@@ -541,6 +770,14 @@ export const api = {
     return window.URL.createObjectURL(blob);
   },
 
+  // Clinical Fact Normalization & Review Bridge
+  getDocumentFacts: (documentId: number) =>
+    request<ExtractedFact[]>(`/api/documents/${documentId}/facts`),
+  confirmDocumentFacts: (documentId: number, req: ConfirmFactsBatchRequest) =>
+    request<FactConfirmationSummary>(`/api/documents/${documentId}/facts/confirm`, { method: "POST", body: JSON.stringify(req) }),
+  getPatientPendingFacts: (patientId: number) =>
+    request<ExtractedFact[]>(`/api/documents/patient/${patientId}/pending-facts`),
+
   // Patient Activity Log
   getPatientActivityPaged: (patientId: number, page: number = 0, size: number = 15) =>
     request<PageResponse<PatientActivity>>(`/api/patients/${patientId}/activity?page=${page}&size=${size}`),
@@ -560,12 +797,83 @@ export const api = {
   // Notifications
   listNotifications: () => request<NotificationItem[]>("/api/notifications"),
   markNotificationRead: (id: number) => request<void>(`/api/notifications/${id}/read`, { method: "PATCH" }),
+  markAllNotificationsRead: () => request<void>("/api/notifications/read-all", { method: "POST" }),
+  getUnreadNotificationCount: () => request<{ unreadCount: number }>("/api/notifications/unread-count"),
 
-  // Admin
-  listUsers: () => request<any[]>("/api/admin/users"),
+  // Longitudinal Doctor Clinical AI
+  generateClinicalInsights: (patientId: number, language?: string) => {
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
+    return request<LongitudinalClinicalInsights>(`/api/ai/clinical-insights/${patientId}${qs}`, { method: "POST" });
+  },
+  getLatestClinicalInsights: (patientId: number) =>
+    request<LongitudinalClinicalInsights | null>(`/api/ai/clinical-insights/${patientId}/latest`),
+
+  // Admin Command Center & Real-World Dataset Governance
+  getDashboardStats: () => request<AdminDashboardStats>("/api/admin/dashboard-stats"),
+  getStats: () => request<AdminDashboardStats>("/api/admin/dashboard-stats"),
+  listUsers: (query?: string, role?: string, active?: boolean) => {
+    const params = new URLSearchParams();
+    if (query) params.append("query", query);
+    if (role) params.append("role", role);
+    if (active !== undefined) params.append("active", String(active));
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    return request<AdminUser[]>(`/api/admin/users${qs}`);
+  },
+  listUsersPaged: (page = 0, size = 20, query?: string, role?: string, active?: boolean) => {
+    const params = new URLSearchParams();
+    params.append("page", String(page));
+    params.append("size", String(size));
+    if (query) params.append("query", query);
+    if (role) params.append("role", role);
+    if (active !== undefined) params.append("active", String(active));
+    return request<{ content: AdminUser[]; totalElements: number; totalPages: number; number: number; size: number }>(`/api/admin/users/paged?${params.toString()}`);
+  },
+  getAdminUser: (id: number) => request<AdminUser>(`/api/admin/users/${id}`),
+  updateAdminUserProfile: (id: number, data: { fullName?: string; email?: string; phone?: string; active?: boolean }) =>
+    request<AdminUser>(`/api/admin/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  resetAdminUserPassword: (id: number, data: { newPassword: string; reason?: string }) =>
+    request<{ message: string }>(`/api/admin/users/${id}/reset-password`, { method: "POST", body: JSON.stringify(data) }),
+  updateUserStatus: (id: number, active: boolean) =>
+    request<void>(`/api/admin/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ active }) }),
   createStaff: (data: { username: string; password: string; fullName: string; email: string; role: string; departmentId?: number; licenseNumber?: string; specialization?: string }) =>
     request<any>("/api/admin/users", { method: "POST", body: JSON.stringify(data) }),
+
+  // Doctor Care Team Allocation & Nurse Directory
+  listAdminDoctors: () => request<DoctorCareTeam[]>("/api/admin/doctors"),
+  allocateNurseToDoctor: (doctorId: number, nurseId: number) =>
+    request<{ message: string }>(`/api/admin/doctors/${doctorId}/nurses/${nurseId}`, { method: "POST" }),
+  removeNurseFromDoctor: (doctorId: number, nurseId: number) =>
+    request<{ message: string }>(`/api/admin/doctors/${doctorId}/nurses/${nurseId}`, { method: "DELETE" }),
+  listAdminNurses: () => request<NurseDetail[]>("/api/admin/nurses"),
+
+  // Patient Directory Overview (Least Privilege)
+  listAdminPatients: (page: number = 0, size: number = 50, query?: string) => {
+    const qs = query ? `&query=${encodeURIComponent(query)}` : "";
+    return request<{ content: PatientAdminOverview[]; totalElements: number; totalPages: number; page: number }>(`/api/admin/patients?page=${page}&size=${size}${qs}`);
+  },
+
+  // Document Oversight Center
+  listAdminDocuments: (status?: string, page: number = 0, size: number = 50) => {
+    const s = status ? `&status=${encodeURIComponent(status)}` : "";
+    return request<{ content: DocumentAdminOverview[]; totalElements: number; totalPages: number; page: number }>(`/api/admin/documents?page=${page}&size=${size}${s}`);
+  },
+  viewAdminDocument: (id: number, reason: string) =>
+    request<DocumentDetail>(`/api/admin/documents/${id}/view`, { method: "POST", body: JSON.stringify({ reason }) }),
+  removeAdminDocument: (id: number, reason: string) =>
+    request<{ message: string }>(`/api/admin/documents/${id}/remove`, { method: "POST", body: JSON.stringify({ reason }) }),
+  restoreAdminDocument: (id: number, reason?: string) =>
+    request<{ message: string }>(`/api/admin/documents/${id}/restore`, { method: "POST", body: JSON.stringify({ reason }) }),
+  getAdminDocumentActions: (id: number) =>
+    request<AdminDocumentAction[]>(`/api/admin/documents/${id}/actions`),
+
+  // AI Monitoring, Dataset Registry & Model Registry
+  getDatasetRegistry: () => request<DatasetRegistryItem[]>("/api/admin/ai/datasets"),
+  getModelRegistry: () => request<ModelRegistryItem[]>("/api/admin/ai/models"),
+  getAiMonitoringStats: () => request<Record<string, unknown>>("/api/admin/ai/monitoring"),
+
+  // Audit Logs & Departments
   listAuditLogs: (page: number = 0, size: number = 50) =>
     request<any>(`/api/admin/audit-logs?page=${page}&size=${size}`),
-  getStats: () => request<any>("/api/admin/stats"),
+  listDepartments: () => request<any[]>("/api/admin/departments"),
 };
+

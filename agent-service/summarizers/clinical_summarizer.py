@@ -43,16 +43,19 @@ class ClinicalDocumentSummarizer:
                 "disclaimer": "AI-assisted summary. Verify against original document."
             }
 
-        # 1. Attempt generation via active AI provider (Ollama / Gemini)
-        provider = AIFactory.get_active_provider()
-        if provider:
-            ai_result = cls._prompt_ai(provider, extracted_text, filename, category)
-            if ai_result:
-                sanitized = cls._validate_and_sanitize(ai_result, extracted_text, category, entities)
-                if sanitized:
-                    sanitized["modelProvider"] = f"{type(provider).__name__.replace('Provider', '').lower()} ({provider.model})"
-                    sanitized["disclaimer"] = "AI-assisted summary. Verify against original document."
-                    return sanitized
+        # 1. Attempt generation via provider chain (Ollama -> Gemini -> deterministic)
+        providers = AIFactory.get_provider_chain()
+        for provider in providers:
+            try:
+                ai_result = cls._prompt_ai(provider, extracted_text, filename, category)
+                if ai_result:
+                    sanitized = cls._validate_and_sanitize(ai_result, extracted_text, category, entities)
+                    if sanitized:
+                        sanitized["modelProvider"] = f"{type(provider).__name__.replace('Provider', '').lower()} ({provider.model})"
+                        sanitized["disclaimer"] = "AI-assisted summary. Verify against original document."
+                        return sanitized
+            except Exception as e:
+                logger.warning(f"Summarization failed with {type(provider).__name__}: {e}")
 
         # 2. Resilient deterministic clinical fallback
         return cls._deterministic_fallback(extracted_text, filename, category, entities)

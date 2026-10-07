@@ -2,6 +2,7 @@ package com.consentcare.core.dto;
 
 import com.consentcare.core.model.AvailabilityStatus;
 import com.consentcare.core.model.Role;
+import java.util.List;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -159,5 +160,90 @@ public class AuthDtos {
 
     public record UpdateUserStatusRequest(
             boolean active
+    ) {}
+
+    public record AdminPasswordResetRequest(
+            @NotBlank(message = "New password is required.")
+            @Pattern(regexp = PASSWORD_PATTERN, message = PASSWORD_MESSAGE)
+            String newPassword,
+            String reason
+    ) {}
+
+    public record UpdateUserProfileRequest(
+            String fullName,
+            String email,
+            String phone,
+            Boolean active
+    ) {}
+
+    public record DoctorCareTeamSummary(
+            Long id,
+            Long userId,
+            String fullName,
+            String email,
+            String specialization,
+            String departmentName,
+            String licenseNumber,
+            String contactNumber,
+            List<NurseSummary> nurses
+    ) {}
+
+    public record NurseDetailSummary(
+            Long id,
+            Long userId,
+            String fullName,
+            String email,
+            String departmentName,
+            AvailabilityStatus availabilityStatus,
+            String contactNumber,
+            long activeTasksCount,
+            List<String> assignedDoctorNames
+    ) {}
+
+    public record PatientAdminSummary(
+            Long id,
+            Long linkedUserId,
+            String fullName,
+            String dateOfBirth,
+            String gender,
+            String phone,
+            String email,
+            String registeredAt,
+            long documentCount,
+            long consentCount
+    ) {}
+
+    public record DocumentAdminSummary(
+            Long id,
+            Long patientId,
+            String patientName,
+            String title,
+            String originalFilename,
+            String fileName,
+            String contentType,
+            long fileSize,
+            com.consentcare.core.model.DocumentCategory category,
+            String adminStatus,
+            String removalReason,
+            Long removedBy,
+            String removedByName,
+            String removedAt,
+            String uploadedAt
+    ) {}
+
+    public record AdminDocumentActionSummary(
+            Long id,
+            Long documentId,
+            Long adminUserId,
+            String adminUsername,
+            String actionType,
+            String administrativeReason,
+            String timestamp,
+            String result
+    ) {}
+
+    public record AdminDocumentReasonRequest(
+            @NotBlank(message = "Administrative justification/reason is mandatory.")
+            String reason
     ) {}
 }

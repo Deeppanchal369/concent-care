@@ -75,23 +75,54 @@ public class ConsentService {
 
     @Transactional
     public ConsentResponse grantConsentDirectly(GrantConsentRequest req, User patientUser) {
+        List<ConsentResponse> responses = grantConsentsDirectlyBatch(req, patientUser);
+        return responses.isEmpty() ? null : responses.get(0);
+    }
+
+    @Transactional
+    public List<ConsentResponse> grantConsentsDirectlyBatch(GrantConsentRequest req, User patientUser) {
         Patient patient = patientRepository.findByLinkedUserId(patientUser.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Patient profile not found"));
 
         Doctor doctor = doctorRepository.findById(req.doctorId())
                 .orElseThrow(() -> new IllegalArgumentException("Doctor not found: " + req.doctorId()));
 
-        Consent consent = Consent.builder()
-                .patientId(patient.getId())
-                .doctorId(doctor.getId())
-                .category(req.category())
-                .purpose(req.purpose())
-                .grantedAt(OffsetDateTime.now())
-                .expiresAt(req.expiresAt())
-                .revoked(false)
-                .status(ConsentStatus.ACTIVE)
-                .build();
-        consent = consentRepository.save(consent);
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime expiresAt = req.expiresAt();
+        if (expiresAt == null) {
+            if (req.durationHours() != null && req.durationHours() > 0) {
+                expiresAt = now.plusHours(req.durationHours());
+            } else if (req.durationMinutes() != null && req.durationMinutes() > 0) {
+                expiresAt = now.plusMinutes(req.durationMinutes());
+            } else {
+                expiresAt = now.plusDays(30); // fallback default
+            }
+        }
+
+        List<ConsentCategory> categoriesToGrant;
+        if (req.categories() != null && !req.categories().isEmpty()) {
+            categoriesToGrant = req.categories();
+        } else if (req.category() != null) {
+            categoriesToGrant = List.of(req.category());
+        } else {
+            categoriesToGrant = List.of(ConsentCategory.MEDICAL_HISTORY);
+        }
+
+        List<Consent> savedConsents = new java.util.ArrayList<>();
+        for (ConsentCategory cat : categoriesToGrant) {
+            Consent consent = Consent.builder()
+                    .patientId(patient.getId())
+                    .doctorId(doctor.getId())
+                    .category(cat)
+                    .purpose(req.purpose() != null && !req.purpose().isBlank() ? req.purpose() : "Clinical care consent")
+                    .grantedAt(now)
+                    .expiresAt(expiresAt)
+                    .revoked(false)
+                    .status(ConsentStatus.ACTIVE)
+                    .grantedBy(patientUser.getUsername())
+                    .build();
+            savedConsents.add(consentRepository.save(consent));
+        }
 
         // Ensure relationship is established
         if (!relationshipRepository.existsByPatientIdAndDoctorIdAndStatus(patient.getId(), doctor.getId(), "ACTIVE")) {
@@ -99,22 +130,46 @@ public class ConsentService {
                     .patient(patient)
                     .doctor(doctor)
                     .status("ACTIVE")
-                    .createdAt(OffsetDateTime.now())
+                    .createdAt(now)
                     .build());
         }
 
+        long durationMin = Math.max(1, java.time.Duration.between(now, expiresAt).toMinutes());
+        String durationDesc;
+        if (durationMin <= 60) {
+            durationDesc = durationMin + " minutes";
+        } else if (durationMin <= 1440) {
+            durationDesc = (durationMin / 60) + " hours";
+        } else {
+            durationDesc = (durationMin / 1440) + " days";
+        }
+
+        String catSummary = categoriesToGrant.size() == 1
+                ? categoriesToGrant.get(0).name()
+                : categoriesToGrant.size() + " categories (" + categoriesToGrant.stream().map(Enum::name).collect(java.util.stream.Collectors.joining(", ")) + ")";
+
         notificationService.createNotification(
                 doctor.getUser().getId(),
-                "ACCESS_APPROVED",
+                "CONSENT_GRANTED",
                 "New Clinical Consent Granted",
-                patient.getFullName() + " granted you access to their " + req.category() + " records.",
+                patient.getFullName() + " granted you " + durationDesc + " access to " + catSummary + ".",
                 "Consent",
-                consent.getId().toString()
+                savedConsents.get(0).getId().toString()
         );
 
-        auditService.logAction(patientUser.getUsername(), Role.PATIENT.name(), "GRANT_CONSENT", "Consent", consent.getId().toString(), "SUCCESS", "Patient granted direct consent for " + req.category());
+        auditService.logAction(
+                patientUser.getUsername(),
+                Role.PATIENT.name(),
+                "GRANT_CONSENT",
+                "Consent",
+                savedConsents.stream().map(c -> c.getId().toString()).collect(java.util.stream.Collectors.joining(",")),
+                "SUCCESS",
+                "Patient granted consent for " + catSummary + " (duration: " + durationDesc + ", expires: " + expiresAt + ")"
+        );
 
-        return toConsentResponse(consent, patient, doctor);
+        return savedConsents.stream()
+                .map(c -> toConsentResponse(c, patient, doctor))
+                .toList();
     }
 
     @Transactional
@@ -134,6 +189,7 @@ public class ConsentService {
 
         consent.setRevoked(true);
         consent.setRevokedAt(OffsetDateTime.now());
+        consent.setRevokedBy(actor.getUsername());
         consent.setStatus(ConsentStatus.REVOKED);
         consent = consentRepository.save(consent);
 
@@ -141,7 +197,7 @@ public class ConsentService {
         if (doctor != null) {
             notificationService.createNotification(
                     doctor.getUser().getId(),
-                    "ACCESS_REVOKED",
+                    "CONSENT_REVOKED",
                     "Record Sharing Stopped by Patient",
                     patient.getFullName() + " has stopped sharing " + consent.getCategory() + " with you.",
                     "Consent",
@@ -172,6 +228,7 @@ public class ConsentService {
         for (Consent c : activeConsents) {
             c.setRevoked(true);
             c.setRevokedAt(now);
+            c.setRevokedBy(actor.getUsername());
             c.setStatus(ConsentStatus.REVOKED);
             consentRepository.save(c);
         }
@@ -180,7 +237,7 @@ public class ConsentService {
         if (doctor != null && !activeConsents.isEmpty()) {
             notificationService.createNotification(
                     doctor.getUser().getId(),
-                    "ACCESS_REVOKED",
+                    "CONSENT_REVOKED",
                     "Record Sharing Stopped by Patient",
                     patient.getFullName() + " has stopped sharing medical records with you.",
                     "Doctor",
@@ -191,6 +248,87 @@ public class ConsentService {
         auditService.logAction(actor.getUsername(), Role.PATIENT.name(), "REVOKE_DOCTOR_ACCESS", "Doctor", doctorId.toString(), "SUCCESS", "Patient revoked all consents for doctor #" + doctorId + " (revoked " + activeConsents.size() + " consents)");
 
         return activeConsents.size();
+    }
+
+    @Transactional
+    public int processConsentExpirations() {
+        OffsetDateTime now = OffsetDateTime.now();
+        int processedCount = 0;
+
+        // 1. Process expired consents
+        List<Consent> expired = consentRepository.findActiveExpiredConsents(now, List.of(ConsentStatus.ACTIVE, ConsentStatus.EXPIRING_SOON));
+        for (Consent c : expired) {
+            c.setStatus(ConsentStatus.EXPIRED);
+            consentRepository.save(c);
+            processedCount++;
+
+            Patient p = patientRepository.findById(c.getPatientId()).orElse(null);
+            Doctor d = doctorRepository.findById(c.getDoctorId()).orElse(null);
+
+            String patientName = p != null ? p.getFullName() : "Patient #" + c.getPatientId();
+            String doctorName = d != null ? d.getUser().getFullName() : "Doctor #" + c.getDoctorId();
+
+            // Notify Doctor
+            if (d != null && d.getUser() != null) {
+                notificationService.createNotification(
+                        d.getUser().getId(),
+                        "CONSENT_EXPIRED",
+                        "Clinical Access Expired",
+                        "Your access to " + c.getCategory() + " records for " + patientName + " has expired.",
+                        "Consent",
+                        c.getId().toString()
+                );
+            }
+
+            // Notify Patient
+            if (p != null && p.getLinkedUserId() != null) {
+                notificationService.createNotification(
+                        p.getLinkedUserId(),
+                        "CONSENT_EXPIRED",
+                        "Clinical Consent Expired",
+                        "Access to " + c.getCategory() + " for Dr. " + doctorName + " has expired.",
+                        "Consent",
+                        c.getId().toString()
+                );
+            }
+
+            auditService.logAction(
+                    "SYSTEM",
+                    "SYSTEM",
+                    "CONSENT_EXPIRED",
+                    "Consent",
+                    c.getId().toString(),
+                    "SUCCESS",
+                    "Consent automatically marked EXPIRED at " + c.getExpiresAt()
+            );
+        }
+
+        // 2. Process expiring soon consents (within 15 minutes)
+        OffsetDateTime soonCutoff = now.plusMinutes(15);
+        List<Consent> expiringSoon = consentRepository.findActiveExpiringSoonConsents(now, soonCutoff, ConsentStatus.ACTIVE);
+        for (Consent c : expiringSoon) {
+            c.setStatus(ConsentStatus.EXPIRING_SOON);
+            consentRepository.save(c);
+
+            long minutesLeft = Math.max(1, java.time.Duration.between(now, c.getExpiresAt()).toMinutes());
+            Patient p = patientRepository.findById(c.getPatientId()).orElse(null);
+            Doctor d = doctorRepository.findById(c.getDoctorId()).orElse(null);
+
+            String patientName = p != null ? p.getFullName() : "Patient #" + c.getPatientId();
+
+            if (d != null && d.getUser() != null) {
+                notificationService.createNotification(
+                        d.getUser().getId(),
+                        "CONSENT_EXPIRING",
+                        "Clinical Access Expiring Soon",
+                        "Access to " + c.getCategory() + " records for " + patientName + " will expire in " + minutesLeft + " minutes.",
+                        "Consent",
+                        c.getId().toString()
+                );
+            }
+        }
+
+        return processedCount;
     }
 
     public List<ConsentResponse> listConsentsForPatient(Long patientId, User actor) {
@@ -226,7 +364,7 @@ public class ConsentService {
 
         List<Consent> consents = consentRepository.findByPatientIdAndDoctorId(patientId, doctorId);
         boolean allowed = consents.stream()
-                .anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now) &&
+                .anyMatch(c -> !c.isRevoked() && c.getStatus() != ConsentStatus.EXPIRED && c.getExpiresAt().isAfter(now) &&
                         (c.getCategory() == category || c.getCategory() == ConsentCategory.ENTIRE_RECORD));
 
         boolean sensitive = SENSITIVE_CATEGORIES.contains(category);
@@ -255,7 +393,9 @@ public class ConsentService {
                 c.getExpiresAt(),
                 c.isRevoked(),
                 c.getRevokedAt(),
-                state
+                state,
+                c.getGrantedBy(),
+                c.getRevokedBy()
         );
     }
 

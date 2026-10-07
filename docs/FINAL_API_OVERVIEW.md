@@ -190,3 +190,4 @@ Authorization: Bearer <JWT_TOKEN>
 * `404 Not Found`: Resource ID does not exist or has been soft-deleted.
 * `429 Too Many Requests`: IP-based rate limit exceeded.
 * `502 Bad Gateway`: Downstream microservice (Risk or Agent service) is unreachable.
+

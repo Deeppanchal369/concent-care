@@ -15,6 +15,7 @@ from providers.ai_factory import AIFactory
 from extractors.text_extractor import DocumentTextExtractor
 from extractors.clinical_extractor import ClinicalEntityExtractor
 from summarizers.clinical_summarizer import ClinicalDocumentSummarizer
+from synthesizers.longitudinal_synthesizer import LongitudinalClinicalSynthesizer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("agent-service")
@@ -132,3 +133,8 @@ def process_document(payload: Dict[str, Any]):
         "structured_json": json.dumps(summary_result),
         "disclaimer": "AI-assisted — verify against original document."
     }
+
+
+@app.post("/agent/synthesize-clinical-insights")
+def synthesize_clinical_insights(payload: Dict[str, Any]):
+    return LongitudinalClinicalSynthesizer.synthesize(payload)

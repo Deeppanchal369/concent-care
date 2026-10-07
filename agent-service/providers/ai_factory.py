@@ -46,6 +46,15 @@ class AIFactory:
         return None
 
     @classmethod
+    def get_provider_chain(cls) -> list:
+        provider_name = os.getenv("AI_PROVIDER", "ollama").lower()
+        if provider_name == "gemini":
+            providers = [cls.get_gemini_provider(), cls.get_ollama_provider()]
+        else:
+            providers = [cls.get_ollama_provider(), cls.get_gemini_provider()]
+        return [p for p in providers if p.is_available()]
+
+    @classmethod
     def get_health_status(cls) -> Dict[str, Any]:
         ollama = cls.get_ollama_provider()
         gemini = cls.get_gemini_provider()

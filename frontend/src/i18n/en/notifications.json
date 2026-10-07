@@ -1,0 +1,17 @@
+{
+  "title": "Live Care Alerts",
+  "realtime": "Real-time",
+  "markAllRead": "Mark all read",
+  "dismiss": "Dismiss",
+  "empty": "No notifications yet. You will receive real-time alerts when clinical events occur.",
+  "types": {
+    "consentExpiring": "Doctor access will expire soon.",
+    "consentExpired": "Doctor access has expired.",
+    "consentRevoked": "Doctor access was revoked.",
+    "newReport": "Your medical report has been analyzed.",
+    "labReady": "Lab test results are now ready for review.",
+    "newPrescription": "A new prescription has been recorded.",
+    "taskAssigned": "A new care task has been assigned.",
+    "taskCompleted": "Care task was marked completed."
+  }
+}

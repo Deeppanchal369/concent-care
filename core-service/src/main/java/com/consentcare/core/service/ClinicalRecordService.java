@@ -97,8 +97,9 @@ public class ClinicalRecordService {
         return encounterRepository.findByPatientIdOrderByEncounterDateDesc(patientId).stream()
                 .filter(enc -> !enc.isArchived())
                 .map(enc -> {
-                    String docName = doctorRepository.findById(enc.getDoctorId())
-                            .map(d -> d.getUser().getFullName()).orElse("Doctor #" + enc.getDoctorId());
+                    String docName = enc.getDoctorId() != null
+                            ? doctorRepository.findById(enc.getDoctorId()).map(d -> d.getUser().getFullName()).orElse("Doctor #" + enc.getDoctorId())
+                            : "Document Provenance / Self-Reported";
                     return toEncounterResponse(enc, docName);
                 })
                 .toList();
@@ -111,8 +112,9 @@ public class ClinicalRecordService {
         Page<Encounter> page = encounterRepository.findByPatientIdAndIsArchivedFalseOrderByEncounterDateDesc(patientId, pageable);
         List<EncounterResponse> content = page.getContent().stream()
                 .map(enc -> {
-                    String docName = doctorRepository.findById(enc.getDoctorId())
-                            .map(d -> d.getUser().getFullName()).orElse("Doctor #" + enc.getDoctorId());
+                    String docName = enc.getDoctorId() != null
+                            ? doctorRepository.findById(enc.getDoctorId()).map(d -> d.getUser().getFullName()).orElse("Doctor #" + enc.getDoctorId())
+                            : "Document Provenance / Self-Reported";
                     return toEncounterResponse(enc, docName);
                 })
                 .toList();
@@ -184,8 +186,9 @@ public class ClinicalRecordService {
         return diagnosisRepository.findByPatientIdOrderByDiagnosedDateDesc(patientId).stream()
                 .filter(d -> !d.isArchived())
                 .map(d -> {
-                    String docName = doctorRepository.findById(d.getDoctorId())
-                            .map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId());
+                    String docName = d.getDoctorId() != null
+                            ? doctorRepository.findById(d.getDoctorId()).map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId())
+                            : "Document Provenance / Self-Reported";
                     return toDiagnosisResponse(d, docName);
                 })
                 .toList();
@@ -198,8 +201,9 @@ public class ClinicalRecordService {
         Page<Diagnosis> page = diagnosisRepository.findByPatientIdAndIsArchivedFalseOrderByDiagnosedDateDesc(patientId, pageable);
         List<DiagnosisResponse> content = page.getContent().stream()
                 .map(d -> {
-                    String docName = doctorRepository.findById(d.getDoctorId())
-                            .map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId());
+                    String docName = d.getDoctorId() != null
+                            ? doctorRepository.findById(d.getDoctorId()).map(doc -> doc.getUser().getFullName()).orElse("Doctor #" + d.getDoctorId())
+                            : "Document Provenance / Self-Reported";
                     return toDiagnosisResponse(d, docName);
                 })
                 .toList();
@@ -231,7 +235,7 @@ public class ClinicalRecordService {
         if (patient.getLinkedUserId() != null) {
             notificationService.createNotification(
                     patient.getLinkedUserId(),
-                    "LAB_ORDERED",
+                    "DOCTOR_INSTRUCTION",
                     "New Lab Test Ordered",
                     "Dr. " + doctorUser.getFullName() + " ordered a test: " + labRequest.getTestName(),
                     "LabRequest",
@@ -325,7 +329,7 @@ public class ClinicalRecordService {
         if (patient.getLinkedUserId() != null) {
             notificationService.createNotification(
                     patient.getLinkedUserId(),
-                    "LAB_RESULT_READY",
+                    "NEW_REPORT",
                     "Lab Result Ready",
                     "Results for " + report.getTestName() + " are now available.",
                     "LabReport",

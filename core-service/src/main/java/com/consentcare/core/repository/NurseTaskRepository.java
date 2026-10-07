@@ -12,5 +12,7 @@ public interface NurseTaskRepository extends JpaRepository<NurseTask, Long> {
     List<NurseTask> findByNurseIdAndStatus(Long nurseId, String status);
     List<NurseTask> findByNurseIdAndStatusIn(Long nurseId, List<String> statuses);
     long countByNurseIdAndStatusIn(Long nurseId, List<String> statuses);
+    long countByStatus(String status);
+    long countByStatusIn(List<String> statuses);
 }
 

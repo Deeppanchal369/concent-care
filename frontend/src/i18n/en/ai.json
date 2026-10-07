@@ -1,0 +1,50 @@
+{
+  "title": "Health Insights",
+  "subtitle": "Longitudinal clinical summary and model-supported risk indicators",
+  "disclaimer": "Clinical decision support only. Not an autonomous diagnostic instrument. Licensed medical practitioner review required.",
+  "status": {
+    "generating": "Preparing insights...",
+    "analyzing": "Analyzing records...",
+    "ready": "Health Insights ready.",
+    "unavailable": "Health Insights are temporarily unavailable.",
+    "requiresReview": "Clinical Review Recommended",
+    "phases": {
+      "phase1": "Preparing health records",
+      "phase2": "Reviewing clinical history",
+      "phase3": "Checking recent trends",
+      "phase4": "Generating health insights",
+      "phase5": "Finalizing summary"
+    },
+    "timeout": {
+      "message": "Analysis is taking longer than expected.",
+      "retry": "Retry",
+      "continueWithoutAi": "Continue without AI"
+    },
+    "fallbackBadge": "Safe Data-Based Summary",
+    "aiBadge": "Clinical AI Synthesis"
+  },
+  "sections": {
+    "past": "Past — What has happened before?",
+    "pastDesc": "Historical clinical trajectory synthesized from confirmed health records",
+    "present": "Present — What is happening now?",
+    "presentDesc": "Current active diagnoses, ongoing medications, and latest vitals",
+    "trends": "Trends — What is changing?",
+    "trendsDesc": "Observed clinical biomarker progression over time",
+    "risks": "Possible Risks — What should be monitored?",
+    "risksDesc": "Supervised risk stratification based on multi-hospital clinical data",
+    "symptoms": "Symptoms to Watch",
+    "symptomsDesc": "Specific follow-up observations recommended for patient monitoring",
+    "evidence": "Evidence — Why is this displayed?",
+    "evidenceDesc": "Direct citations and provenance linked to verified medical events"
+  },
+  "technicalDetails": {
+    "title": "Technical Details",
+    "hide": "Hide Technical Details",
+    "show": "View Technical Details",
+    "algorithm": "Machine Learning Algorithm",
+    "dataset": "Training Cohort",
+    "modelVersion": "Model Version",
+    "riskScore": "Model Risk Score",
+    "provider": "Language Provider"
+  }
+}

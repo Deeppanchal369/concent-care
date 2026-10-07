@@ -2,6 +2,7 @@ package com.consentcare.core.repository;
 
 import com.consentcare.core.model.Document;
 import com.consentcare.core.model.DocumentCategory;
+import com.consentcare.core.model.ProcessingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +16,15 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     List<Document> findByPatientIdAndCategoryOrderByUploadedAtDesc(Long patientId, DocumentCategory category);
 
     Page<Document> findByPatientIdAndIsArchivedFalse(Long patientId, Pageable pageable);
+    List<Document> findByPatientId(Long patientId);
+
+    long countByAdminStatus(String adminStatus);
+    long countByAiStatus(ProcessingStatus aiStatus);
+
+    Page<Document> findByAdminStatus(String adminStatus, Pageable pageable);
 
     @Query("SELECT d FROM Document d WHERE d.patientId = :patientId AND d.isArchived = false " +
+           "AND d.adminStatus != 'REMOVED_BY_ADMIN' " +
            "AND (:category IS NULL OR d.category = :category) " +
            "AND (:query IS NULL OR :query = '' OR " +
            "     LOWER(d.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

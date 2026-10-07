@@ -194,3 +194,4 @@ ConsentCare is fully capable of operating in air-gapped environments without ext
 3. The UCI Diabetes Random Forest model (`readmission_model.joblib`) is packaged directly inside the `risk-service` image.
 4. Tesseract OCR language packages (`tesseract-ocr-eng`) are bundled at build time.
 5. All database migrations are packaged inside `core-service-1.0.0.jar`.
+

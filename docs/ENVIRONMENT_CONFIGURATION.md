@@ -61,3 +61,4 @@ This document provides an exhaustive reference for all environment variables, pa
    Rotating `JWT_SECRET` immediately invalidates all active client sessions, requiring users to log in again. In production, rotate during scheduled maintenance windows.
 3. **Database Credentials**:
    PostgreSQL credentials should be injected via Docker Secrets, HashiCorp Vault, or environment files with restricted file permissions (`chmod 600 .env`).
+

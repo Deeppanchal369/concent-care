@@ -29,6 +29,9 @@ public class LabReport {
     @Column(name = "document_id")
     private Long documentId;
 
+    @Column(name = "provenance_text")
+    private String provenanceText;
+
     @Column(name = "test_name", nullable = false, length = 150)
     private String testName;
 

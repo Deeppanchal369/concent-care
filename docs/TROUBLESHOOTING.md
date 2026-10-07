@@ -137,3 +137,4 @@ curl -s http://localhost:11434/api/tags
      ```bash
      docker compose restart core-service
      ```
+

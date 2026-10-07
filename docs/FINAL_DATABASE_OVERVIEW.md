@@ -158,3 +158,4 @@ CREATE INDEX idx_audit_log_timestamp_principal
 3. **Audit Immutability**:
    * Application-level services lack `UPDATE` or `DELETE` methods for `audit_log` and Envers `*_aud` tables.
    * Database-level triggers prevent mutation of existing audit entries.
+

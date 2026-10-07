@@ -109,3 +109,4 @@ If a single microservice needs restarting:
 docker compose restart consentcare-agent-service
 docker compose restart consentcare-core-service
 ```
+
