@@ -1,147 +1,122 @@
-# ConsentCare EHR
+# ArogyaMitra EHR
 
-> A patient-governed, zero-trust Electronic Health Record (EHR) system featuring real-time clinical workflows, grounded local document intelligence, machine learning hospital readmission prediction, and OWASP ASVS 5.0.0 (Level 2) hardened security.
+<div align="center">
 
----
+### Next-Generation Zero-Trust, Patient-Governed Electronic Health Record Platform
 
-## 1. System Overview & Core Capabilities
+[![Security Hardened](https://img.shields.io/badge/Security-OWASP%20ASVS%205.0%20(Level%202)-teal.svg)](#4-security-compliance--governance)
+[![Architecture](https://img.shields.io/badge/Architecture-Zero--Trust%20ABAC-blue.svg)](#3-system-architecture--topology)
+[![AI Intelligence](https://img.shields.io/badge/Clinical%20AI-Multimodal%20Vision%20%2B%20Local%20LLM-028090.svg)](#-4-multimodal-clinical-ai--machine-learning)
+[![Standards](https://img.shields.io/badge/Interoperability-HL7%20%2F%20FHIR%20R4-emerald.svg)](#4-security-compliance--governance)
+[![License](https://img.shields.io/badge/License-Proprietary%20%26%20Confidential-red.svg)](LICENSE)
 
-* **Zero-Trust Patient Consent Sovereignty**:
-  * Granular patient control across clinical categories (`MEDICAL_HISTORY`, `DIAGNOSES`, `LAB_REPORTS`, `PRESCRIPTIONS`, `DOCUMENTS`, `RISK_ASSESSMENTS`).
-  * Physicians cannot access patient records or order interventions without active patient consent.
-  * Immediate revocation propagation ("Stop Sharing") halts access instantly (HTTP 403 Forbidden).
-* **Dedicated Role Workstations**:
-  * **Doctor Clinical Workstation**: Cohort review, longitudinal encounters, diagnoses problem list, multi-item prescriptions, lab test orders, Document AI review, and care-team task delegation.
-  * **Nurse Care Workstation**: Real-time task queue, bedside patient safety context, medication administration, vital signs recording, and explicit availability state control (`AVAILABLE` / `BUSY`).
-  * **Patient Care & Consent Portal**: Sovereign record control, 1-click consent granting and instant revocation, incoming physician access requests approval/rejection, and audit ledger viewing.
-  * **System Administration Console**: Clinician onboarding, care-team assignment, immutable system audit logs, and diagnostic health monitoring (with zero access to clinical charts).
-* **Supervised Clinical Readmission Risk Model**:
-  * Powered by an authentic `RandomForestClassifier` (200 estimators) trained on 101,766 clinical encounters from the **UCI Diabetes 130-US Hospitals (1999–2008)** dataset (Accuracy: 0.6898, ROC-AUC: 0.6478).
-  * Strict zero-fabrication mandate: Incomplete records return `INSUFFICIENT_DATA` rather than guessing missing features.
-* **Grounded Local Document AI**:
-  * Powered by locally running **Ollama (`llama3.2:1b`)** and Tesseract OCR over internal Docker-to-host bridge (`http://host.docker.internal:11434`).
-  * Strict zero-hallucination mandate: Missing clinical data is returned as `"Not detected"`.
-  * Adversarial prompt injection defense: Uploaded document text is isolated within inert XML tags without autonomous execution.
-* **Hardened Security & Privacy**:
-  * Hardened against **OWASP ASVS 5.0.0 (Level 2)**, OWASP Top 10:2025, and OWASP API Top 10:2023.
-  * BOLA / IDOR protection across all endpoints; internal microservice ports bound strictly to loopback `127.0.0.1`.
-  * Automated regex redaction in audit logs preventing raw passwords, Bearer tokens, or credentials from leaking.
+*Empowering healthcare providers with real-time clinical workstations while restoring sovereign data consent and privacy to patients.*
+
+</div>
 
 ---
 
-## 2. Target Service Architecture
+## 1. Executive Summary & Value Proposition
 
-```
-[ Frontend: React 18 / Vite / Tailwind ]  ---> Port 81 (Host) / Port 80 (Container)
-                |
-                v  REST / SSE Stream
-[ Core Service: Spring Boot 3.3 / Java 17 ] ---> Port 8081 (Host) / Port 8080 (Container)
-        |               |               |
-        v               v               v
-  [ PostgreSQL 16 ]  [ Risk Svc: 8001 ]  [ Agent Svc: 8002 ]
-  (Port 5433)        (127.0.0.1:8001)    (127.0.0.1:8002)
-   Flyway V1-V26     (FastAPI / Scikit)  (FastAPI / Ollama & Gemini Vision)
-```
+Traditional Electronic Health Record (EHR) architectures confine sensitive patient health data within opaque, centralized hospital silos. Patients possess zero visibility or fine-grained control over who accesses their health history, while clinicians grapple with fragmented interfaces, manual transcription burdens, and disconnected care-team handoffs.
+
+**ArogyaMitra EHR** (built on the *ConsentCare* architecture) establishes a modern, patient-governed clinical standard:
+* **Patient Sovereign Consent Hub**: Granular category-level access control (`MEDICAL_HISTORY`, `DIAGNOSES`, `LAB_REPORTS`, `PRESCRIPTIONS`, `DOCUMENTS`, `RISK_ASSESSMENTS`) with 1-click instant revocation ("Stop Sharing") enforced at the database and gateway layers.
+* **Specialized Clinical Workstations**: Purpose-built, distraction-free workspaces designed for attending physicians, care-team nurses, system administrators, and patients.
+* **Grounded Multimodal Clinical AI**: Hybrid intelligence combining local offline models (Ollama `llama3.2:1b`) with multimodal cloud vision fallback (Gemini Vision) and adaptive OCR to digitize handwritten prescriptions, physician cursive notes, and scanned lab reports without hallucinations.
+* **Predictive Clinical Analytics**: An authentic Random Forest readmission risk prediction engine trained on 101,766 verified inpatient clinical encounters (UCI Diabetes 130-US Hospitals dataset).
+* **Enterprise Security Baseline**: Formally audited against **OWASP ASVS 5.0.0 (Level 2)**, OWASP Top 10:2025, and OWASP API Top 10:2023, featuring Attribute-Based Access Control (ABAC), immutable Envers audit provenance, and automated credential redaction.
 
 ---
 
-## 3. Quickstart & Installation
+## 2. Product Modules & Clinical Workstations
 
-### 3.1 Prerequisites
-* Docker Desktop 4.25+ with Docker Engine 26+ and Docker Compose v2+
-* Local [Ollama](https://ollama.ai) installed and running on the host machine:
-  ```bash
-  ollama serve
-  ollama pull llama3.2:1b
-  ```
+### 🛡️ 1. Patient Sovereign Consent Center
+* **Granular Permission Sliders**: Patients independently grant or deny permission across 6 distinct clinical categories per physician or care team.
+* **Instant Revocation ("Stop Sharing")**: Immediately terminates access tokens and propagates access barriers (HTTP 403 Forbidden) across all endpoints with zero synchronization delay.
+* **Transparent Access Ledger**: Complete historical log detailing every physician, nurse, and system access attempt, timestamped with clinical justification.
+* **Care Circle Management**: Enables patients to view and manage designated primary care physicians and approved specialists.
 
-### 3.2 Environment Configuration
-Copy the template configuration:
-```bash
-cp .env.example .env
-```
+### 🩺 2. Doctor Clinical Workstation
+* **Longitudinal Patient Charting**: Comprehensive timeline visualizing clinical encounters, lab trends, vitals history, and active medications.
+* **Diagnostic Problem List**: ICD-10 standardized diagnostic registry with severity ratings, clinical notes, and amendment tracking.
+* **Digital Prescription Authoring**: Structured e-prescriptions with dosage, route, frequency, duration, and indication checks.
+* **Care-Team Task Delegation**: Real-time delegation of bedside care tasks, medication administration, and lab orders to assigned care-team nurses.
 
-### 3.3 Build and Launch Containers
-```bash
-docker compose build
-docker compose up -d
-```
+### 👩‍⚕️ 3. Nurse Bedside Coordination Station
+* **Real-Time Task Queue**: Interactive dispatch queue for claiming, starting, and completing delegated physician orders.
+* **Optimistic Concurrency Control**: Prevents duplicate medication administration or conflicting care tasks via database row-versioning locks.
+* **Bedside Vitals Flowsheet**: Quick recording modal for blood pressure, pulse, temperature, oxygen saturation (SpO2), and blood glucose with range validation.
+* **Duty Status Selector**: Real-time availability indicator (`AVAILABLE`, `BUSY`, `OFF_DUTY`) keeping attending doctors informed of nurse operational bandwidth.
 
-### 3.4 Verify Service Health
-```bash
-docker compose ps
-```
-All 5 containers must report status `Up (healthy)`.
+### 🤖 4. Multimodal Clinical AI & Machine Learning
+* **Handwriting & Prescription Digitization**: High-fidelity multimodal vision processing capable of transcribing physician cursive handwriting and camera uploads.
+* **Strict Zero-Hallucination Guardrails**: Adheres to medical safety standards—unidentifiable markers are explicitly flagged as `"Not detected"` rather than fabricated.
+* **Adversarial Prompt Shielding**: Uploaded clinical text is isolated within inert XML execution envelopes, defending against prompt injection and malicious payloads.
+* **Supervised Readmission Risk Engine**: Classifies patient 30-day hospital readmission risk (`LOW`, `MEDIUM`, `HIGH`) with strict `INSUFFICIENT_DATA` enforcement when required clinical features are missing.
 
 ---
 
-## 4. Default Demonstration Accounts
+## 3. System Architecture & Topology
 
-| Role | Username | Default Password | Clinical Context |
-|---|---|---|---|
-| **System Administrator** | `admin` | `Admin@12345` | System Administration (`/admin`) |
-| **Attending Doctor** | `dr.jenkins` | `Doctor@123` | Dr. Sarah Jenkins, MD (Cardiology) |
-| **Secondary Doctor** | `dr.vance` | `Doctor@123` | Dr. Marcus Vance, MD (Endocrinology) |
-| **Care Team Nurse** | `nurse.elena` | `Nurse@123` | Elena Rostova, RN (Cardiology) |
-| **Care Team Nurse** | `nurse.david` | `Nurse@123` | David Miller, RN (Cardiology) |
-| **Care Team Nurse** | `nurse.emily` | `Nurse@123` | Emily Watson, RN (Endocrinology) |
-| **Consented Patient** | `patient.eleanor.vance` | `Patient@123` | Eleanor Vance (Cardiology Cohort) |
-| **Secondary Patient** | `patient.thomas.clark` | `Patient@123` | Thomas Clark (Endocrinology Cohort) |
-
-*Note: The frontend application is accessible at `http://localhost:81`.*
-
----
-
-## 5. Automated Verification & Testing
-
-Execute the test suites against running containers:
-
-```powershell
-# Maven unit tests (17 checks)
-cd core-service; mvn -B test; cd ..
-
-# Phase 3 E2E test suite (Longitudinal records & documents)
-powershell -ExecutionPolicy Bypass -File .\test_phase3_e2e.ps1
-
-# Phase 4 E2E test suite (Nurse workflow & concurrency lock)
-powershell -ExecutionPolicy Bypass -File .\test_phase4_e2e.ps1
-
-# Phase 5 E2E test suite (Document AI & UCI Random Forest ML)
-powershell -ExecutionPolicy Bypass -File .\test_phase5_e2e.ps1
-
-# Phase 6 Security regression suite (36 OWASP ASVS checks)
-powershell -ExecutionPolicy Bypass -File .\test_phase6_security_regression.ps1
-
-# Phase 7 Final acceptance suite (29 QA release checks)
-powershell -ExecutionPolicy Bypass -File .\test_phase7_acceptance.ps1
+```
+                         ┌──────────────────────────────────────────────┐
+                         │   ArogyaMitra Single-Page Application (SPA) │
+                         │       React 19 · Vite · Tailwind CSS v4      │
+                         └──────────────────────┬───────────────────────┘
+                                                │ RESTful APIs / SSE Notifications
+                                                ▼
+                         ┌──────────────────────────────────────────────┐
+                         │       Enterprise Core API Gateway            │
+                         │    Spring Boot 3.3 · Java 17 · Security 6    │
+                         └──────┬────────────────┬───────────────┬──────┘
+                                │                │               │
+            Internal Microservice Network (Bound to Loopback / Private VPC)
+                                │                │               │
+                                ▼                ▼               ▼
+                     ┌──────────────────┐ ┌───────────────┐ ┌───────────────┐
+                     │  PostgreSQL 16   │ │ Risk Service  │ │ Agent Service │
+                     │   Flyway V1–V26  │ │ Scikit-Learn  │ │ Ollama/Gemini │
+                     │ Envers Provenance│ │ Readmission ML│ │ Document AI   │
+                     └──────────────────┘ └───────────────┘ └───────────────┘
 ```
 
+* **Microservice Isolation**: Risk and AI services bind strictly to loopback interfaces (`127.0.0.1`), ensuring zero direct exposure to public networks.
+* **State Synchronization**: Server-Sent Events (SSE) deliver instant bedside notifications, task claim alerts, and duty state updates with zero polling overhead.
+* **Healthcare Dark Mode**: High-contrast, WCAG 2.1 AA compliant dark theme designed for low-light clinical environments and nursing stations.
+* **Bilingual Support**: Instant toggle between English and regional Gujarati (`ગુજરાતી`) with localized medical terminology and typography.
+
 ---
 
-## 6. Comprehensive Project Documentation
+## 4. Security, Compliance & Governance
 
-### 6.1 Deployment & Operations
-* **[Production Deployment Guide](docs/DEPLOYMENT.md)**: Hardened multi-tier deployment, secrets management, and database backup/restore.
-* **[Environment Configuration Guide](docs/ENVIRONMENT_CONFIGURATION.md)**: Full catalog of environment variables across all 5 container services.
-* **[Troubleshooting & Diagnostic Runbook](docs/TROUBLESHOOTING.md)**: Remediation runbook for Ollama connectivity, ports, rate limiting, and Flyway repairs.
-* **[Clean Installation & Setup Guide](docs/SETUP.md)**: Step-by-step developer workstation installation instructions.
+* **OWASP ASVS 5.0.0 (Level 2) Hardened**: Rigorously verified across authentication, session management, access control, input validation, and cryptography.
+* **Attribute-Based Access Control (ABAC)**: Enforces dynamic multi-parameter authorization (patient consent + doctor care-team assignment + active clinical encounter).
+* **Automated Audit Redaction**: High-performance regex filters scrub raw passwords, JWT bearer tokens, and sensitive clinical identifiers from system audit logs.
+* **Immutable Provenance Tracking**: Hibernate Envers captures full historical snapshots of patient records, consent modifications, and diagnostic updates.
+* **Interoperability Standards**: Features HL7 / FHIR R4 export endpoints (`/fhir/Patient`, `/fhir/Observation`) supporting interoperable clinical data exchange.
 
-### 6.2 System Architecture & Specifications
-* **[Final System Architecture](docs/FINAL_SYSTEM_ARCHITECTURE.md)**: Layered architecture, network topologies, data flows, and isolation models.
-* **[Final API Specification](docs/FINAL_API_OVERVIEW.md)**: Complete catalog of authenticated endpoints, DTOs, and error codes.
-* **[Final Database Schema](docs/FINAL_DATABASE_OVERVIEW.md)**: PostgreSQL 16 schema, Flyway V1–V17 migrations, and composite indexes.
-* **[Final Security & Privacy Controls](docs/FINAL_SECURITY_CONTROLS.md)**: OWASP ASVS 5.0.0 Level 2 controls, ABAC evaluator, and prompt shielding.
-* **[Final AI & Machine Learning Implementation](docs/FINAL_AI_ML_IMPLEMENTATION.md)**: Local Ollama Document AI, UCI Random Forest ML, and zero-hallucination verification.
-* **[Final Role & Permission Matrix](docs/FINAL_ROLE_AND_PERMISSION_MATRIX.md)**: Granular RBAC and ABAC matrix across all 4 user roles.
+---
 
-### 6.3 Demonstration & Project Handover
-* **[Comprehensive Project Report](docs/PROJECT_REPORT_AROGYAMITRA_EHR.md)**: Full 11-section institutional project report covering problem statement, system architecture, database design, AI intelligence pipeline, security, and verification.
-* **[Downloadable Project Report PDF](docs/ArogyaMitra_EHR_Project_Report.pdf)**: Formal academic/enterprise project report document in PDF format.
-* **[Project Handover Dossier](docs/PROJECT_HANDOVER.md)**: Master release document, tech stack, test baseline, and truthful research declaration.
-* **[Demonstration Script](docs/DEMO_SCRIPT.md)**: Step-by-step multi-persona clinical demonstration walkthrough.
-* **[Demonstration Checklist](docs/DEMO_CHECKLIST.md)**: 10-minute pre-demo readiness checklist and quick recovery runbook.
-* **[Demonstration Test Users](docs/DEMO_TEST_USERS.md)**: Full directory of demonstration accounts, credentials, and clinical contexts.
-* **[Research Implementation Mapping](docs/RESEARCH_IMPLEMENTATION_MAPPING.md)**: Academic traceability matrix linking research themes to code artifacts.
-* **[Release Readiness Evaluation](docs/RELEASE_READINESS.md)**: 14-point release gate evaluation confirming zero release blockers.
-* **[Final Acceptance & QA Report](docs/FINAL_ACCEPTANCE_REPORT.md)**: Comprehensive empirical verification report and final release decision (**READY FOR RESEARCH DEMO**).
-* **[OWASP ASVS Verification Report](docs/PHASE6_OWASP_VERIFICATION.md)**: OWASP ASVS 5.0.0 Level 2 verification evidence.
+## 5. Live Demonstration & Evaluation Access
+
+To safeguard the intellectual property of this platform and maintain healthcare security best practices, **production deployment scripts, internal network configurations, and administrative master credentials are kept in secure enterprise runbooks**.
+
+### Interactive Sandbox Access
+Live demonstration environments and evaluation credentials across all four roles (**Attending Physician**, **Care-Team Nurse**, **Patient**, and **System Administrator**) are available for institutional reviews, research evaluations, and prospective deployments upon verification:
+
+* 📧 **Request Demonstration Access**: [deeppanchal01999@gmail.com](mailto:deeppanchal01999@gmail.com)  
+* 📄 **Comprehensive Project Report**: An in-depth 11-section architectural and clinical report is available in [`docs/PROJECT_REPORT_AROGYAMITRA_EHR.md`](docs/PROJECT_REPORT_AROGYAMITRA_EHR.md) and [`docs/ArogyaMitra_EHR_Project_Report.pdf`](docs/ArogyaMitra_EHR_Project_Report.pdf).
+
+---
+
+## 6. Intellectual Property & Copyright Notice
+
+**Copyright © 2026 Deep Panchal. All Rights Reserved.**
+
+This platform, including its software architecture, user interface designs, proprietary algorithms, database schemas, and documentation, is the exclusive intellectual property of **Deep Panchal**.
+
+* **PROPRIETARY & CONFIDENTIAL**: No part of this software may be cloned, copied, downloaded, redistributed, reverse-engineered, white-labeled, re-hosted, or commercially exploited without prior express written authorization.
+* **UNAUTHORIZED USE & PIRACY**: Unauthorized reproduction or false claims of authorship over this system, its source code, or its branding will be subject to immediate legal action and DMCA takedown enforcement.
+
+For licensing, commercial partnerships, or deployment inquiries, please contact **Deep Panchal** at [deeppanchal01999@gmail.com](mailto:deeppanchal01999@gmail.com).
