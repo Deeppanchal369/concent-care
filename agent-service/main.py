@@ -63,18 +63,66 @@ async def process_file(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to read uploaded file: {e}")
 
-    # 1. Multi-format text extraction & OCR
-    extracted_text, method, status = DocumentTextExtractor.extract_from_bytes(
-        file_bytes, actual_name, file.content_type or ""
-    )
+    ext = actual_name.lower().split(".")[-1] if "." in actual_name else ""
+    mime_type = file.content_type or ""
+    is_image = ext in ["jpg", "jpeg", "png", "webp"] or ("image/" in mime_type)
 
-    # 2. Structured entity extraction
-    entities = ClinicalEntityExtractor.extract(extracted_text)
+    summary_result = None
+    extracted_text = ""
+    method = "DIRECT_PARSE"
+    status = "READY"
 
-    # 3. Grounded AI summarization
-    summary_result = ClinicalDocumentSummarizer.summarize(
-        extracted_text, actual_name, category, entities
-    )
+    # 1. Multimodal Vision Pipeline: For images and mobile photos (doctor prescriptions, slips)
+    # Bypasses classical OCR limitations to read cursive handwriting, medicines, and dosages directly.
+    if is_image:
+        gemini = AIFactory.get_gemini_provider()
+        if gemini and gemini.is_available():
+            vision_prompt = f"""You are an expert clinical document analyst.
+Analyze this prescription or medical document image in high detail.
+Transcribe and identify:
+1. Patient name, age, gender, date
+2. Prescribing doctor name, credentials, registration, clinic, contact
+3. Clinical condition, complaints (e.g. c/o BP -> Hypertension)
+4. Prescribed medications with dosage, frequency/schedule (e.g. 1-0-0 = once daily morning), and instructions
+5. Any lab tests or values if present
+Output strictly in valid JSON matching this schema:
+{{
+    "documentType": "{category.replace('_', ' ').title() if category != 'OTHER' else 'Prescription'}",
+    "summary": "Clear, grounded clinical summary of the patient, doctor, condition, and treatment",
+    "keyFindings": ["clinical finding 1", "clinical finding 2"],
+    "labResults": [
+        {{"testName": "string", "value": "string", "unit": "string", "referenceRange": "string", "flag": "NORMAL|HIGH|LOW"}}
+    ],
+    "medications": ["Medication name, dosage, schedule (e.g. Tab. Nicardia 1-0-0)"],
+    "diagnosesMentioned": ["Diagnosis or condition (e.g. Hypertension)"],
+    "symptomsMentioned": "Symptoms or chief complaint",
+    "uncertainItems": ["Any ambiguous handwriting items"]
+}}"""
+            try:
+                vision_res = gemini.generate_structured_vision(
+                    vision_prompt, file_bytes, mime_type or "image/jpeg"
+                )
+                if vision_res and (vision_res.get("medications") or vision_res.get("summary") or vision_res.get("diagnosesMentioned")):
+                    summary_result = vision_res
+                    method = "MULTIMODAL_VISION"
+                    status = "READY"
+                    summary_result["modelProvider"] = f"gemini-vision ({gemini.model})"
+                    med_lines = "\n".join([f"- {m}" for m in summary_result.get("medications", [])])
+                    diag_lines = ", ".join(summary_result.get("diagnosesMentioned", []))
+                    extracted_text = f"Summary: {summary_result.get('summary', '')}\n\nCondition: {diag_lines}\n\nPrescribed Medications:\n{med_lines}"
+            except Exception as vision_err:
+                logger.warning(f"Vision analysis fallback triggered: {vision_err}")
+                summary_result = None
+
+    # 2. Text Extraction & Fallback Pipeline (PDFs, DOCX, TXT, or when vision is offline)
+    if not summary_result:
+        extracted_text, method, status = DocumentTextExtractor.extract_from_bytes(
+            file_bytes, actual_name, mime_type
+        )
+        entities = ClinicalEntityExtractor.extract(extracted_text)
+        summary_result = ClinicalDocumentSummarizer.summarize(
+            extracted_text, actual_name, category, entities
+        )
 
     report_type = summary_result.get("documentType")
     if not report_type or str(report_type).lower().strip() in ["string", "number", "object", "example", "test", "unknown", ""]:

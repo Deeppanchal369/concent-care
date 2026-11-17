@@ -161,6 +161,29 @@ export default function DocumentCenter({
     loadDocuments(0);
   }, [patientId, selectedCategory, searchQuery]);
 
+  // Auto-poll when any document is still processing AI in the background
+  useEffect(() => {
+    const hasProcessing = documents.some(
+      (d) => d.aiStatus === "PROCESSING" || d.aiStatus === "PENDING"
+    );
+    if (!hasProcessing) return;
+
+    const timer = setInterval(() => {
+      const catParam = selectedCategory === "ALL" ? undefined : selectedCategory;
+      const searchParam = searchQuery.trim() || undefined;
+      api.listDocumentsPaged(patientId, {
+        category: catParam,
+        search: searchParam,
+        page: pageInfo.pageNumber,
+        size: pageInfo.pageSize,
+      }).then((res) => {
+        setDocuments(res.content || []);
+      }).catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [documents, patientId, selectedCategory, searchQuery, pageInfo.pageNumber, pageInfo.pageSize]);
+
   // Clean up preview object URLs
   useEffect(() => {
     return () => {
@@ -622,10 +645,26 @@ export default function DocumentCenter({
                         ) : (
                           <button
                             onClick={() => handleViewAiAnalysis(doc)}
-                            className="btn-tactile inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 transition-colors"
+                            className={`btn-tactile inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                              doc.aiStatus === "READY" || doc.aiStatus === "COMPLETED"
+                                ? "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800"
+                                : doc.aiStatus === "PROCESSING" || doc.aiStatus === "PENDING"
+                                ? "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800"
+                                : doc.aiStatus === "FAILED"
+                                ? "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800"
+                                : "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800"
+                            }`}
                           >
-                            <span>📋</span>
-                            <span>{doc.aiStatus === "COMPLETED" ? "Insights Ready" : "Analyzing..."}</span>
+                            <span>
+                              {doc.aiStatus === "READY" || doc.aiStatus === "COMPLETED" ? "✨" :
+                               doc.aiStatus === "PROCESSING" || doc.aiStatus === "PENDING" ? "⏳" :
+                               doc.aiStatus === "FAILED" ? "❌" : "📋"}
+                            </span>
+                            <span>
+                              {doc.aiStatus === "READY" || doc.aiStatus === "COMPLETED" ? "Insights Ready" :
+                               doc.aiStatus === "PROCESSING" || doc.aiStatus === "PENDING" ? "Analyzing..." :
+                               doc.aiStatus === "FAILED" ? "Analysis Failed" : "Review Needed"}
+                            </span>
                           </button>
                         )}
                       </td>

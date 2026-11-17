@@ -394,11 +394,25 @@ public class ClinicalRecordService {
             }
         }
 
+        String rawVitalType = req.vitalType().trim().toUpperCase();
+        String normalizedVitalType = switch (rawVitalType) {
+            case "BP", "BLOOD_PRESSURE" -> "BLOOD_PRESSURE";
+            case "PULSE", "HEART_RATE", "HR" -> "HEART_RATE";
+            case "TEMP", "TEMPERATURE" -> "TEMPERATURE";
+            case "SPO2", "O2_SATURATION", "O2" -> "O2_SATURATION";
+            case "GLUCOSE", "BLOOD_GLUCOSE", "BG" -> "BLOOD_GLUCOSE";
+            case "RESPIRATORY_RATE", "RR" -> "RESPIRATORY_RATE";
+            case "BMI" -> "BMI";
+            case "WEIGHT", "WT" -> "WEIGHT";
+            case "HEIGHT", "HT" -> "HEIGHT";
+            default -> rawVitalType;
+        };
+
         Observation obs = Observation.builder()
                 .patientId(patient.getId())
                 .doctorId(doctorId)
                 .nurseId(nurseId)
-                .vitalType(req.vitalType().trim().toUpperCase())
+                .vitalType(normalizedVitalType)
                 .valueNumeric(req.valueNumeric())
                 .valueText(req.valueText())
                 .unit(req.unit().trim())

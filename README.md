@@ -40,7 +40,7 @@
         v               v               v
   [ PostgreSQL 16 ]  [ Risk Svc: 8001 ]  [ Agent Svc: 8002 ]
   (Port 5433)        (127.0.0.1:8001)    (127.0.0.1:8002)
-   Flyway V1-V17     (FastAPI / Scikit)  (FastAPI / Ollama)
+   Flyway V1-V26     (FastAPI / Scikit)  (FastAPI / Ollama & Gemini Vision)
 ```
 
 ---
@@ -80,11 +80,13 @@ All 5 containers must report status `Up (healthy)`.
 | Role | Username | Default Password | Clinical Context |
 |---|---|---|---|
 | **System Administrator** | `admin` | `Admin@12345` | System Administration (`/admin`) |
-| **Attending Doctor** | `dr.jenkins` | `Doctor@123` | Dr. Sarah Jenkins, MD (Doctor ID 1) |
-| **Secondary Doctor** | `dr.vance` | `Doctor@123` | Dr. Marcus Vance, MD (Doctor ID 2) |
-| **Care Team Nurse** | `nurse.elena` | `Nurse@123` | Elena Rostova, RN (Nurse ID 1) |
-| **Care Team Nurse** | `nurse.david` | `Nurse@123` | David Miller, RN (Nurse ID 2) |
-| **Consented Patient** | `patient.eleanor.vance` | `Patient@123` | Eleanor Vance (Patient ID 4) |
+| **Attending Doctor** | `dr.jenkins` | `Doctor@123` | Dr. Sarah Jenkins, MD (Cardiology) |
+| **Secondary Doctor** | `dr.vance` | `Doctor@123` | Dr. Marcus Vance, MD (Endocrinology) |
+| **Care Team Nurse** | `nurse.elena` | `Nurse@123` | Elena Rostova, RN (Cardiology) |
+| **Care Team Nurse** | `nurse.david` | `Nurse@123` | David Miller, RN (Cardiology) |
+| **Care Team Nurse** | `nurse.emily` | `Nurse@123` | Emily Watson, RN (Endocrinology) |
+| **Consented Patient** | `patient.eleanor.vance` | `Patient@123` | Eleanor Vance (Cardiology Cohort) |
+| **Secondary Patient** | `patient.thomas.clark` | `Patient@123` | Thomas Clark (Endocrinology Cohort) |
 
 *Note: The frontend application is accessible at `http://localhost:81`.*
 
@@ -133,6 +135,8 @@ powershell -ExecutionPolicy Bypass -File .\test_phase7_acceptance.ps1
 * **[Final Role & Permission Matrix](docs/FINAL_ROLE_AND_PERMISSION_MATRIX.md)**: Granular RBAC and ABAC matrix across all 4 user roles.
 
 ### 6.3 Demonstration & Project Handover
+* **[Comprehensive Project Report](docs/PROJECT_REPORT_AROGYAMITRA_EHR.md)**: Full 11-section institutional project report covering problem statement, system architecture, database design, AI intelligence pipeline, security, and verification.
+* **[Downloadable Project Report PDF](docs/ArogyaMitra_EHR_Project_Report.pdf)**: Formal academic/enterprise project report document in PDF format.
 * **[Project Handover Dossier](docs/PROJECT_HANDOVER.md)**: Master release document, tech stack, test baseline, and truthful research declaration.
 * **[Demonstration Script](docs/DEMO_SCRIPT.md)**: Step-by-step multi-persona clinical demonstration walkthrough.
 * **[Demonstration Checklist](docs/DEMO_CHECKLIST.md)**: 10-minute pre-demo readiness checklist and quick recovery runbook.

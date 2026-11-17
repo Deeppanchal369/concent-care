@@ -117,11 +117,11 @@ $n2Headers = @{ Authorization = "Bearer $($n2Auth.token)" }
 $nurse2Id = 2
 Write-Host " [PASS] Nurse 2 (Nurse David Miller) authenticated." -ForegroundColor Green
 
-# Nurse 5 (Nurse Fatima Al-Sayed, Doctor 2's care team)
-$n5Auth = Invoke-LoginWithRetry -Username "nurse.fatima" -Password "Nurse@123"
+# Nurse 5 (Nurse Emily Watson, Doctor 2's care team)
+$n5Auth = Invoke-LoginWithRetry -Username "nurse.emily" -Password "Nurse@123"
 $n5Headers = @{ Authorization = "Bearer $($n5Auth.token)" }
 $nurse5Id = 5
-Write-Host " [PASS] Nurse 5 (Nurse Fatima Al-Sayed) authenticated." -ForegroundColor Green
+Write-Host " [PASS] Nurse 5 (Nurse Emily Watson) authenticated." -ForegroundColor Green
 
 # --------------------------------------------------------------------------
 # Clean up any existing consents between Patient A and Doctor 1

@@ -42,7 +42,7 @@ class OllamaProvider:
                         "num_predict": 600
                     }
                 },
-                timeout=45.0
+                timeout=120.0
             )
             resp.raise_for_status()
             data = resp.json()

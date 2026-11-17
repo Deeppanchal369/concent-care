@@ -31,7 +31,7 @@
 |---|---|---|---|---|---|---|
 | `nurse.elena` | `Nurse@123` | 1 | 5 | Elena Rostova, RN | General Inpatient Medicine | Assigned to Dr. Jenkins' care team. Status: `AVAILABLE`. Primary nurse for task claiming and vital recording. |
 | `nurse.david` | `Nurse@123` | 2 | 6 | David Miller, RN | Emergency & Acute Care | Assigned to Dr. Jenkins' care team. Status: `AVAILABLE`. Secondary nurse for demonstrating concurrency locks. |
-| `nurse.fatima` | `Nurse@123` | 3 | 7 | Fatima Al-Sayed, RN | Intensive Care Unit (ICU) | Assigned to Dr. Patel's care team. Used for testing cross-team task isolation. |
+| `nurse.emily` | `Nurse@123` | 3 | 7 | Emily Watson, RN | Intensive Care Unit (ICU) | Assigned to Dr. Patel's care team. Used for testing cross-team task isolation. |
 | `nurse.marcus` | `Nurse@123` | 4 | 8 | Marcus Chen, RN | Pediatrics & Family Medicine | Floating nurse. Used for demonstrating nurse availability toggling (`AVAILABLE` / `BUSY`). |
 
 ---

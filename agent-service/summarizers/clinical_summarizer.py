@@ -62,7 +62,10 @@ class ClinicalDocumentSummarizer:
 
     @classmethod
     def _prompt_ai(cls, provider, text: str, filename: str, category: str) -> Optional[Dict[str, Any]]:
-        safe_text = text[:6000]
+        # Optimize prompt length for CPU Ollama vs fast Cloud LLM (Gemini)
+        is_local_ollama = "Ollama" in type(provider).__name__
+        max_chars = 3000 if is_local_ollama else 8000
+        safe_text = text[:max_chars]
         cat_title = category.replace("_", " ").title()
 
         prompt = f"""You are a specialized clinical document extraction assistant for ConsentCare EHR.

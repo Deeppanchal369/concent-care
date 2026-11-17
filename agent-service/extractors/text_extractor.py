@@ -143,12 +143,36 @@ class DocumentTextExtractor:
         if Image is None or pytesseract is None:
             return "Not detected", "NONE", "FAILED"
         try:
+            from PIL import ImageEnhance, ImageOps
             stream = io.BytesIO(file_bytes)
             img = Image.open(stream)
-            # Real OCR execution
-            text = pytesseract.image_to_string(img).strip()
+            
+            # Correct orientation from EXIF tags (mobile phone cameras)
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+
+            # Primary OCR pass
+            raw_text = pytesseract.image_to_string(img).strip()
+
+            # Enhanced contrast pass for faint ink and colored stamps/headers
+            try:
+                gray = img.convert('L')
+                enhancer = ImageEnhance.Contrast(gray)
+                enhanced_img = enhancer.enhance(2.0)
+                enhanced_text = pytesseract.image_to_string(enhanced_img).strip()
+            except Exception:
+                enhanced_text = ""
+
+            # Pick the richer extraction result
+            text = enhanced_text if len(enhanced_text) > len(raw_text) else raw_text
+
             if text:
-                return text, "OCR", "READY"
+                # If text is very short or fragmented (< 80 chars), it likely contains handwriting
+                # that classical OCR cannot fully transcribe.
+                status = "READY" if len(text) > 120 else "NEEDS_REVIEW"
+                return text, "OCR", status
             return "Not detected", "OCR", "NEEDS_REVIEW"
         except Exception as e:
             logger.warning(f"Image OCR failed: {e}")

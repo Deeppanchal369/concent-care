@@ -16,7 +16,7 @@ This script provides a step-by-step clinical walkthrough for demonstrating the e
 2. **Review User Management**:
    * Point out the existing clinical staff:
      * Doctor: **Dr. Sarah Jenkins, MD** (`dr.jenkins`, Doctor ID 1, Cardiology/Internal Medicine).
-     * Nurses: **Elena Rostova, RN**, **David Miller, RN**, **Fatima Al-Sayed, RN**, **Marcus Chen, RN**.
+     * Nurses: **Elena Rostova, RN**, **David Miller, RN**, **Emily Watson, RN**, **Marcus Chen, RN**.
      * Patient: **Eleanor Vance** (`patient.eleanor.vance`, Patient ID 4).
    * Demonstrate assigning nurses to Dr. Jenkins' care team.
 3. **Verify Least-Privilege Clinical Privacy**:

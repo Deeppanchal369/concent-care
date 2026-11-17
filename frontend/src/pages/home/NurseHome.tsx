@@ -25,10 +25,11 @@ export default function NurseHome() {
   const [completeSubmitting, setCompleteSubmitting] = useState(false);
 
   // Quick Vitals Modal
+  type VitalTypeOption = "BLOOD_PRESSURE" | "HEART_RATE" | "TEMPERATURE" | "O2_SATURATION" | "BLOOD_GLUCOSE";
   const [showVitalsModal, setShowVitalsModal] = useState(false);
   const [vitalsPatientId, setVitalsPatientId] = useState<number | null>(null);
   const [vitalsPatientName, setVitalsPatientName] = useState<string>("");
-  const [vitalType, setVitalType] = useState<"bp" | "pulse" | "temp" | "spo2" | "glucose">("bp");
+  const [vitalType, setVitalType] = useState<VitalTypeOption>("BLOOD_PRESSURE");
   const [vitalValue, setVitalValue] = useState<string>("");
   const [vitalUnit, setVitalUnit] = useState<string>("mmHg");
   const [vitalNotes, setVitalNotes] = useState<string>("");
@@ -110,7 +111,7 @@ export default function NurseHome() {
   const handleOpenVitalsModal = (patientId: number, patientName?: string) => {
     setVitalsPatientId(patientId);
     setVitalsPatientName(patientName || `#${patientId}`);
-    setVitalType("bp");
+    setVitalType("BLOOD_PRESSURE");
     setVitalValue("");
     setVitalUnit("mmHg");
     setVitalNotes("");
@@ -118,13 +119,13 @@ export default function NurseHome() {
     triggerHaptic(5);
   };
 
-  const handleVitalTypeChange = (type: "bp" | "pulse" | "temp" | "spo2" | "glucose") => {
+  const handleVitalTypeChange = (type: VitalTypeOption) => {
     setVitalType(type);
-    if (type === "bp") setVitalUnit("mmHg");
-    else if (type === "pulse") setVitalUnit("bpm");
-    else if (type === "temp") setVitalUnit("°F");
-    else if (type === "spo2") setVitalUnit("%");
-    else if (type === "glucose") setVitalUnit("mg/dL");
+    if (type === "BLOOD_PRESSURE") setVitalUnit("mmHg");
+    else if (type === "HEART_RATE") setVitalUnit("bpm");
+    else if (type === "TEMPERATURE") setVitalUnit("°F");
+    else if (type === "O2_SATURATION") setVitalUnit("%");
+    else if (type === "BLOOD_GLUCOSE") setVitalUnit("mg/dL");
   };
 
   const handleSaveVitals = async (e: React.FormEvent) => {
@@ -136,7 +137,7 @@ export default function NurseHome() {
     try {
       await api.recordObservation({
         patientId: vitalsPatientId,
-        vitalType: vitalType.toUpperCase(),
+        vitalType,
         valueNumeric: parseFloat(vitalValue),
         unit: vitalUnit,
         notes: vitalNotes.trim() || undefined,
@@ -237,8 +238,8 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("AVAILABLE")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "AVAILABLE"
-                ? "border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30 ring-2 ring-emerald-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-400/50"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
@@ -248,7 +249,7 @@ export default function NurseHome() {
                   {t("nurse.availability.available")}
                 </span>
                 {currentStatus === "AVAILABLE" && (
-                  <span className="text-xs font-bold text-emerald-600">✓ Active</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">✓ Active</span>
                 )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
@@ -264,8 +265,8 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("BUSY")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "BUSY"
-                ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/30 ring-2 ring-amber-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/40 ring-2 ring-amber-400/50"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
@@ -275,7 +276,7 @@ export default function NurseHome() {
                   {t("nurse.availability.busy")}
                 </span>
                 {currentStatus === "BUSY" && (
-                  <span className="text-xs font-bold text-amber-600">✓ Active</span>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">✓ Active</span>
                 )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
@@ -291,8 +292,8 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("OFF_DUTY")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "OFF_DUTY"
-                ? "border-slate-500 bg-slate-100 dark:bg-slate-800 ring-2 ring-slate-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800/90 ring-2 ring-slate-400/50"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
@@ -302,7 +303,7 @@ export default function NurseHome() {
                   {t("nurse.availability.offDuty")}
                 </span>
                 {currentStatus === "OFF_DUTY" && (
-                  <span className="text-xs font-bold text-slate-600">✓ Active</span>
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">✓ Active</span>
                 )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
@@ -382,20 +383,20 @@ export default function NurseHome() {
             {filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:border-teal/40 transition space-y-3"
+                className="p-5 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800/60 hover:border-teal/40 transition space-y-3"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                       {task.patientName ? `${task.patientName}` : `Patient #${task.patientId}`}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 font-mono">
                       #{task.patientId}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                       task.priority === "URGENT" || task.priority === "STAT"
                         ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"
                     }`}>
                       {task.priority}
                     </span>
@@ -410,12 +411,12 @@ export default function NurseHome() {
                     </span>
                   </div>
 
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-400 dark:text-slate-400">
                     {task.dueTime ? `Due: ${new Date(task.dueTime).toLocaleString()}` : ""}
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg leading-relaxed">
+                <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-100 dark:border-slate-800 leading-relaxed">
                   <span className="font-bold block text-slate-700 dark:text-slate-200 mb-0.5">
                     {task.taskType}:
                   </span>
@@ -423,7 +424,7 @@ export default function NurseHome() {
                 </div>
 
                 {task.completionNotes && (
-                  <div className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <div className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/80">
                     <span className="font-bold">Completion Notes: </span>
                     {task.completionNotes}
                   </div>
@@ -432,7 +433,7 @@ export default function NurseHome() {
                 {/* Workflow Actions */}
                 <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
                   <span className="text-xs text-slate-400">
-                    {t("nurse.tasks.assignedBy")}: Dr. {task.doctorName || `#${task.doctorId}`}
+                    {t("nurse.tasks.assignedBy")}: {task.doctorName ? (task.doctorName.startsWith("Dr.") ? task.doctorName : `Dr. ${task.doctorName}`) : `#${task.doctorId}`}
                   </span>
 
                   <div className="flex items-center gap-2">
@@ -573,11 +574,11 @@ export default function NurseHome() {
                   onChange={(e) => handleVitalTypeChange(e.target.value as any)}
                   className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
-                  <option value="bp">{t("nurse.vitals.types.bp")}</option>
-                  <option value="pulse">{t("nurse.vitals.types.pulse")}</option>
-                  <option value="temp">{t("nurse.vitals.types.temp")}</option>
-                  <option value="spo2">{t("nurse.vitals.types.spo2")}</option>
-                  <option value="glucose">{t("nurse.vitals.types.glucose")}</option>
+                  <option value="BLOOD_PRESSURE">{t("nurse.vitals.types.bp")}</option>
+                  <option value="HEART_RATE">{t("nurse.vitals.types.pulse")}</option>
+                  <option value="TEMPERATURE">{t("nurse.vitals.types.temp")}</option>
+                  <option value="O2_SATURATION">{t("nurse.vitals.types.spo2")}</option>
+                  <option value="BLOOD_GLUCOSE">{t("nurse.vitals.types.glucose")}</option>
                 </select>
               </div>
 

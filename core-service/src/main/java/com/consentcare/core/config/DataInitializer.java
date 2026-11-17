@@ -147,8 +147,8 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // Seed Nurses 5 and 6 for Doctor Vance
-        String[] nurseEndoNames = {"Nurse Fatima Al-Sayed", "Nurse James O'Connor"};
-        String[] nurseEndoUsernames = {"nurse.fatima", "nurse.james"};
+        String[] nurseEndoNames = {"Nurse Emily Watson", "Nurse James O'Connor"};
+        String[] nurseEndoUsernames = {"nurse.emily", "nurse.james"};
 
         for (int i = 0; i < nurseEndoNames.length; i++) {
             User nurseUser = userRepository.save(User.builder()
@@ -179,7 +179,7 @@ public class DataInitializer implements CommandLineRunner {
         // Seed 10 Realistic Patients
         String[] patientNames = {
                 "Eleanor Vance", "Arthur Pendelton", "Maya Lin", "Robert Kowalski",
-                "Sophia Chen", "Carlos Mendez", "Hannah Abbott", "Tariq Mansoor",
+                "Sophia Chen", "Carlos Mendez", "Hannah Abbott", "Thomas Clark",
                 "Gemma Ward", "Dmitri Volkov"
         };
         String[] dobs = {

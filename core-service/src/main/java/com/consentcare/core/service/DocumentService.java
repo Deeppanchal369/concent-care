@@ -139,7 +139,7 @@ public class DocumentService {
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
                     .bodyToMono(Map.class)
-                    .timeout(java.time.Duration.ofSeconds(45))
+                    .timeout(java.time.Duration.ofSeconds(180))
                     .subscribe(
                             result -> saveAiAnalysisFromAgent(doc, result),
                             error -> {

@@ -1,21 +1,28 @@
 import os
 import json
 import time
+import base64
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optionala
 import httpx
 
 logger = logging.getLogger("agent-service.gemini")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
 
 class GeminiProvider:
     def __init__(self, api_key: str = GEMINI_API_KEY, model: str = GEMINI_MODEL):
         self.api_key = api_key
         self.model = model
-        self.fallback_models = ["gemini-3.5-flash", "gemini-3.6-flash"]
+        self.fallback_models = [
+            "gemini-3-flash-preview",
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-flash-lite-latest",
+            "gemini-flash-latest"
+        ]
 
     def is_available(self) -> bool:
         return bool(self.api_key)
@@ -48,7 +55,7 @@ class GeminiProvider:
                                 "temperature": 0.1
                             }
                         },
-                        timeout=45.0
+                        timeout=120.0
                     )
                     if resp.status_code in (503, 429) and attempt == 0:
                         time.sleep(1.0)
@@ -66,4 +73,65 @@ class GeminiProvider:
                     time.sleep(1.0)
 
         return None
+
+    def generate_structured_vision(self, prompt: str, image_bytes: bytes, mime_type: str = "image/jpeg") -> Optional[Dict[str, Any]]:
+        """
+        Multimodal Vision analysis directly on raw image pixels.
+        Bypasses classical OCR limitations to accurately recognize handwritten prescriptions,
+        doctor cursive notes, and low-contrast mobile camera uploads.
+        """
+        if not self.is_available() or not image_bytes:
+            return None
+
+        models_to_try = [self.model]
+        for m in self.fallback_models:
+            if m not in models_to_try:
+                models_to_try.append(m)
+
+        img_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        headers = {
+            "x-goog-api-key": self.api_key,
+            "Content-Type": "application/json"
+        }
+
+        safe_mime = mime_type if mime_type and "image/" in mime_type else "image/jpeg"
+
+        for current_model in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{current_model}:generateContent"
+            for attempt in range(2):
+                try:
+                    resp = httpx.post(
+                        url,
+                        headers=headers,
+                        json={
+                            "contents": [{
+                                "parts": [
+                                    {"inline_data": {"mime_type": safe_mime, "data": img_b64}},
+                                    {"text": prompt}
+                                ]
+                            }],
+                            "generationConfig": {
+                                "response_mime_type": "application/json",
+                                "temperature": 0.1
+                            }
+                        },
+                        timeout=90.0
+                    )
+                    if resp.status_code in (503, 429) and attempt == 0:
+                        time.sleep(1.0)
+                        continue
+                    if resp.status_code in (404, 429, 503):
+                        break
+                    resp.raise_for_status()
+                    data = resp.json()
+                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    return json.loads(raw_text)
+                except Exception as e:
+                    if attempt == 1:
+                        status = getattr(getattr(e, "response", None), "status_code", "N/A")
+                        logger.warning(f"Gemini vision failed on model '{current_model}': {type(e).__name__} (status: {status})")
+                    time.sleep(1.0)
+
+        return None
+
 
