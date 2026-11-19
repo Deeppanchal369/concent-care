@@ -68,8 +68,9 @@ public class DoctorService {
             return List.of();
         }
 
+        final Long docId = doctor.getId();
         return patientRepository.findAllById(allAuthorizedIds).stream()
-                .map(this::toPatientResponse)
+                .map(p -> toPatientResponse(p, docId))
                 .toList();
     }
 
@@ -93,7 +94,8 @@ public class DoctorService {
                 ? patientRepository.findByIdInAndFullNameContainingIgnoreCase(allAuthorizedIds, query.trim(), pageable)
                 : patientRepository.findByIdIn(allAuthorizedIds, pageable);
 
-        return PageResponse.from(page.map(this::toPatientResponse));
+        final Long docId = doctor.getId();
+        return PageResponse.from(page.map(p -> toPatientResponse(p, docId)));
     }
 
     public List<AccessRequestResponse> getPendingRequests(Long userId) {
@@ -114,15 +116,25 @@ public class DoctorService {
                 .orElseThrow(() -> new IllegalArgumentException("Access request not found: " + requestId));
 
         if (!accessRequest.getDoctor().getId().equals(doctor.getId())) {
-            throw new IllegalArgumentException("You are not authorized to respond to this access request.");
+            throw new org.springframework.security.access.AccessDeniedException("You are not authorized to respond to this access request.");
+        }
+
+        if (accessRequest.getStatus() != AccessRequestStatus.PENDING) {
+            throw new IllegalStateException("Access request #" + requestId + " has already been processed or closed (status: " + accessRequest.getStatus() + ").");
+        }
+
+        if (req.status() != AccessRequestStatus.APPROVED && req.status() != AccessRequestStatus.REJECTED) {
+            throw new IllegalArgumentException("Invalid status decision. Must be APPROVED or REJECTED.");
         }
 
         accessRequest.setStatus(req.status());
         accessRequest.setRespondedAt(OffsetDateTime.now());
         accessRequest.setReviewedBy(doctorUser);
-        if (req.durationDays() != null && req.durationDays() > 0) {
-            accessRequest.setDurationDays(req.durationDays());
-        }
+
+        int requestedDays = (accessRequest.getDurationDays() != null && accessRequest.getDurationDays() > 0) ? accessRequest.getDurationDays() : 30;
+        int days = (req.durationDays() != null && req.durationDays() > 0) ? Math.min(req.durationDays(), requestedDays) : requestedDays;
+        days = Math.min(Math.max(days, 1), 365); // Bound between 1 and 365 days
+        accessRequest.setDurationDays(days);
         accessRequestRepository.save(accessRequest);
 
         Patient patient = accessRequest.getPatient();
@@ -138,7 +150,6 @@ public class DoctorService {
                         .build());
             }
 
-            int days = (req.durationDays() != null && req.durationDays() > 0) ? req.durationDays() : (accessRequest.getDurationDays() != null ? accessRequest.getDurationDays() : 30);
             OffsetDateTime expiresAt = OffsetDateTime.now().plusDays(days);
 
             // Parse categories and create consent records
@@ -147,6 +158,8 @@ public class DoctorService {
                     .filter(s -> !s.isBlank())
                     .map(ConsentCategory::valueOf)
                     .toList();
+
+            String grantedBy = patient.getLinkedUserId() != null ? patient.getLinkedUserId().toString() : "PATIENT_" + patient.getId();
 
             for (ConsentCategory cat : categories) {
                 consentRepository.save(Consent.builder()
@@ -158,6 +171,7 @@ public class DoctorService {
                         .grantedAt(OffsetDateTime.now())
                         .expiresAt(expiresAt)
                         .status(ConsentStatus.ACTIVE)
+                        .grantedBy(grantedBy)
                         .build());
             }
 
@@ -221,7 +235,12 @@ public class DoctorService {
         );
     }
 
-    private PatientResponse toPatientResponse(Patient p) {
+    private PatientResponse toPatientResponse(Patient p, Long doctorId) {
+        OffsetDateTime now = OffsetDateTime.now();
+        List<Consent> consents = consentRepository.findByPatientIdAndDoctorId(p.getId(), doctorId);
+        boolean hasHistoryAccess = consents.stream().anyMatch(c -> !c.isRevoked() && c.getExpiresAt().isAfter(now) &&
+                (c.getCategory() == ConsentCategory.ENTIRE_RECORD || c.getCategory() == ConsentCategory.MEDICAL_HISTORY || c.getCategory() == ConsentCategory.CLINICAL_NOTES));
+
         return new PatientResponse(
                 p.getId(),
                 p.getLinkedUserId(),
@@ -230,12 +249,12 @@ public class DoctorService {
                 p.getGender(),
                 p.getPhone(),
                 p.getEmail(),
-                p.getAddress(),
+                hasHistoryAccess ? p.getAddress() : null,
                 p.getEmergencyContact(),
                 p.getBloodGroup(),
-                p.getAllergies(),
-                p.getChronicConditions(),
-                p.getMedicalHistorySummary(),
+                hasHistoryAccess ? p.getAllergies() : null,
+                hasHistoryAccess ? p.getChronicConditions() : null,
+                hasHistoryAccess ? p.getMedicalHistorySummary() : null,
                 p.getCreatedAt()
         );
     }

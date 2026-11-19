@@ -43,6 +43,11 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${consentcare.admin.name:ConsentCare System Administrator}")
     private String adminName;
 
+    @Value("${consentcare.seed-demo-data:true}")
+    private boolean seedDemoData;
+
+    private final org.springframework.core.env.Environment environment;
+
     @Override
     @Transactional
     public void run(String... args) {
@@ -67,6 +72,11 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedDemoDataIfEmpty() {
+        if (!seedDemoData || java.util.Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            log.info("Demo data seeding skipped (production profile active or seed-demo-data disabled)");
+            return;
+        }
+
         if (doctorRepository.count() > 0) {
             return; // Data already seeded
         }

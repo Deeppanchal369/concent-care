@@ -146,8 +146,8 @@ public class PrescriptionService {
     }
 
     private PrescriptionResponse toResponse(Prescription p) {
-        Doctor doctor = doctorRepository.findById(p.getDoctorId()).orElse(null);
-        Patient patient = patientRepository.findById(p.getPatientId()).orElse(null);
+        Doctor doctor = p.getDoctorId() != null ? doctorRepository.findById(p.getDoctorId()).orElse(null) : null;
+        Patient patient = p.getPatientId() != null ? patientRepository.findById(p.getPatientId()).orElse(null) : null;
 
         List<PrescriptionItemResponse> items = itemRepository.findByPrescriptionId(p.getId()).stream()
                 .map(i -> new PrescriptionItemResponse(
@@ -169,7 +169,7 @@ public class PrescriptionService {
                 p.getPatientId(),
                 patient != null ? patient.getFullName() : "Patient #" + p.getPatientId(),
                 p.getDoctorId(),
-                doctor != null ? doctor.getUser().getFullName() : "Doctor #" + p.getDoctorId(),
+                doctor != null ? doctor.getUser().getFullName() : (p.getDoctorId() != null ? "Doctor #" + p.getDoctorId() : "Unassigned Doctor"),
                 p.getEncounterId(),
                 p.getStatus(),
                 p.getNotes(),

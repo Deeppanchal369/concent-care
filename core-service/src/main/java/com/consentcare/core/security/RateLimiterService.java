@@ -92,6 +92,13 @@ public class RateLimiterService {
 
     private final ConcurrentHashMap<String, TokenBucket> buckets = new ConcurrentHashMap<>();
 
+    private void evictStaleBucketsIfLarge() {
+        if (buckets.size() > 2000) {
+            long cutoff = System.currentTimeMillis() - 300_000L; // 5 minutes inactivity
+            buckets.entrySet().removeIf(e -> e.getValue().lastRefillTimestamp < cutoff);
+        }
+    }
+
     /**
      * Attempts to acquire 1 token for the specified key and policy.
      *
@@ -100,6 +107,7 @@ public class RateLimiterService {
      * @return true if token was acquired; false if rate limit exceeded
      */
     public boolean tryAcquire(String key, Policy policy) {
+        evictStaleBucketsIfLarge();
         String bucketKey = policy.name() + ":" + key;
         TokenBucket bucket = buckets.computeIfAbsent(bucketKey, k -> new TokenBucket(policy.getCapacity()));
         return bucket.tryConsume(policy);

@@ -3,7 +3,7 @@ import json
 import time
 import base64
 import logging
-from typing import Dict, Any, Optionala
+from typing import Dict, Any, Optional
 import httpx
 
 logger = logging.getLogger("agent-service.gemini")
@@ -17,10 +17,7 @@ class GeminiProvider:
         self.api_key = api_key
         self.model = model
         self.fallback_models = [
-            "gemini-3-flash-preview",
-            "gemini-3.5-flash-lite",
-            "gemini-3.6-flash",
-            "gemini-flash-lite-latest",
+            "gemini-2.5-flash",
             "gemini-flash-latest"
         ]
 
@@ -55,8 +52,11 @@ class GeminiProvider:
                                 "temperature": 0.1
                             }
                         },
-                        timeout=120.0
+                        timeout=25.0
                     )
+                    if resp.status_code in (400, 401, 403):
+                        logger.warning(f"Gemini API returned client error {resp.status_code} on model {current_model}")
+                        return None
                     if resp.status_code in (503, 429) and attempt == 0:
                         time.sleep(1.0)
                         continue
@@ -115,8 +115,11 @@ class GeminiProvider:
                                 "temperature": 0.1
                             }
                         },
-                        timeout=90.0
+                        timeout=30.0
                     )
+                    if resp.status_code in (400, 401, 403):
+                        logger.warning(f"Gemini API returned client error {resp.status_code} in vision on model {current_model}")
+                        return None
                     if resp.status_code in (503, 429) and attempt == 0:
                         time.sleep(1.0)
                         continue

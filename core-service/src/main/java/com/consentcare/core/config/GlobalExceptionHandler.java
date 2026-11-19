@@ -84,10 +84,35 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("That file is too large. Maximum allowed size is 20 MB.", "FILE_TOO_LARGE", 400, req.getRequestURI()));
     }
 
-    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
-    public ResponseEntity<ErrorResponse> handleNotFound(HttpServletRequest req) {
+    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class, java.util.NoSuchElementException.class, jakarta.persistence.EntityNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFound(Exception req, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of("The requested clinical resource was not found.", "NOT_FOUND", 404, req.getRequestURI()));
+                .body(ErrorResponse.of("The requested clinical resource was not found.", "NOT_FOUND", 404, request.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMalformedJson(org.springframework.http.converter.HttpMessageNotReadableException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of("Malformed JSON request body.", "MALFORMED_JSON", 400, req.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of("Invalid parameter format or type mismatch: " + ex.getName(), "TYPE_MISMATCH", 400, req.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParam(org.springframework.web.bind.MissingServletRequestParameterException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of("Required parameter '" + ex.getParameterName() + "' is missing.", "MISSING_PARAMETER", 400, req.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex, HttpServletRequest req) {
+        log.warn("Database constraint violation on {}: {}", req.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("A record with these unique details already exists or violates integrity rules.", "DATA_CONFLICT", 409, req.getRequestURI()));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

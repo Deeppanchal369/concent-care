@@ -238,13 +238,15 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("AVAILABLE")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "AVAILABLE"
-                ? "border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 ring-2 ring-emerald-400/50 shadow-xs"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                <span className={`text-sm font-bold flex items-center gap-1.5 ${
+                  currentStatus === "AVAILABLE" ? "text-emerald-700 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"
+                }`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
                   {t("nurse.availability.available")}
                 </span>
@@ -265,13 +267,15 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("BUSY")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "BUSY"
-                ? "border-amber-500 bg-amber-50/60 dark:bg-amber-950/40 ring-2 ring-amber-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 ring-2 ring-amber-400/50 shadow-xs"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                <span className={`text-sm font-bold flex items-center gap-1.5 ${
+                  currentStatus === "BUSY" ? "text-amber-700 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"
+                }`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
                   {t("nurse.availability.busy")}
                 </span>
@@ -292,13 +296,15 @@ export default function NurseHome() {
             onClick={() => handleUpdateDutyStatus("OFF_DUTY")}
             className={`btn-tactile p-4 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
               currentStatus === "OFF_DUTY"
-                ? "border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800/90 ring-2 ring-slate-400/50"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "border-slate-400 dark:border-slate-500 bg-slate-100 dark:bg-slate-800 ring-2 ring-slate-400/50 shadow-xs"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className={`text-sm font-bold flex items-center gap-1.5 ${
+                  currentStatus === "OFF_DUTY" ? "text-slate-800 dark:text-slate-200" : "text-slate-700 dark:text-slate-300"
+                }`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block" />
                   {t("nurse.availability.offDuty")}
                 </span>
@@ -383,48 +389,48 @@ export default function NurseHome() {
             {filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-5 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800/60 hover:border-teal/40 transition space-y-3"
+                className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 hover:border-teal/40 dark:hover:border-teal/50 transition space-y-3 shadow-xs"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                       {task.patientName ? `${task.patientName}` : `Patient #${task.patientId}`}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 font-mono">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono border border-slate-200 dark:border-slate-700">
                       #{task.patientId}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${
                       task.priority === "URGENT" || task.priority === "STAT"
-                        ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"
+                        ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-900/60"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700"
                     }`}>
                       {task.priority}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${
                       task.status === "COMPLETED"
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60"
                         : task.status === "IN_PROGRESS"
-                        ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400"
-                        : "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400"
+                        ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-900/60"
+                        : "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-900/60"
                     }`}>
                       {task.status}
                     </span>
                   </div>
 
-                  <div className="text-xs text-slate-400 dark:text-slate-400">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
                     {task.dueTime ? `Due: ${new Date(task.dueTime).toLocaleString()}` : ""}
                   </div>
                 </div>
 
-                <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-100 dark:border-slate-800 leading-relaxed">
-                  <span className="font-bold block text-slate-700 dark:text-slate-200 mb-0.5">
+                <div className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 leading-relaxed">
+                  <span className="font-bold block text-slate-800 dark:text-slate-200 mb-0.5">
                     {task.taskType}:
                   </span>
                   {task.instructions}
                 </div>
 
                 {task.completionNotes && (
-                  <div className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/80">
+                  <div className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 p-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
                     <span className="font-bold">Completion Notes: </span>
                     {task.completionNotes}
                   </div>
@@ -432,7 +438,7 @@ export default function NurseHome() {
 
                 {/* Workflow Actions */}
                 <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {t("nurse.tasks.assignedBy")}: {task.doctorName ? (task.doctorName.startsWith("Dr.") ? task.doctorName : `Dr. ${task.doctorName}`) : `#${task.doctorId}`}
                   </span>
 

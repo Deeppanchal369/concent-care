@@ -28,11 +28,13 @@ public class DoctorController {
     private final com.consentcare.core.service.NurseService nurseService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DoctorSummary>> searchDoctors(@RequestParam(value = "query", required = false) String query) {
         return ResponseEntity.ok(doctorService.searchDoctors(query));
     }
 
     @GetMapping("/paged")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PageResponse<DoctorSummary>> searchDoctorsPaged(
             @RequestParam(value = "query", required = false) String query,
             @PageableDefault(size = 10, sort = "user.fullName", direction = Sort.Direction.ASC) Pageable pageable) {

@@ -31,7 +31,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
-        } else if (request.getParameter("token") != null) {
+        } else if (request.getParameter("token") != null &&
+                   request.getRequestURI() != null &&
+                   request.getRequestURI().endsWith("/api/notifications/stream")) {
+            // Strictly restrict query parameter token extraction to Server-Sent Events (SSE) stream
             token = request.getParameter("token");
         }
 

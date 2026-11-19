@@ -246,4 +246,13 @@ public class AuthDtos {
             @NotBlank(message = "Administrative justification/reason is mandatory.")
             String reason
     ) {}
+
+    public record ChangePasswordRequest(
+            @NotBlank(message = "Current password is required.")
+            String currentPassword,
+
+            @NotBlank(message = "New password is required.")
+            @Pattern(regexp = PASSWORD_PATTERN, message = PASSWORD_MESSAGE)
+            String newPassword
+    ) {}
 }

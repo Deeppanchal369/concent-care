@@ -53,6 +53,10 @@ class ConsentSecurityEvaluatorTest {
 
         patient = Patient.builder().id(10L).linkedUserId(2L).fullName("John Doe").build();
         doctor = Doctor.builder().id(20L).user(doctorUser).specialization("Cardiology").licenseNumber("MD-12345").build();
+        lenient().when(patientRepository.existsById(anyLong())).thenAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return id != null && id.equals(10L);
+        });
     }
 
     @Test

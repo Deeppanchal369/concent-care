@@ -26,8 +26,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function loadStoredUser(): AuthUser | null {
-  const raw = localStorage.getItem("cc_user");
-  return raw ? JSON.parse(raw) : null;
+  try {
+    const raw = localStorage.getItem("cc_user");
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    localStorage.removeItem("cc_user");
+    return null;
+  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

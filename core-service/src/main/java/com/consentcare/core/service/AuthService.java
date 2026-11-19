@@ -260,14 +260,43 @@ public class AuthService {
     @Transactional
     public void updateUserStatus(Long userId, boolean active, User admin) {
         if (admin.getRole() != Role.ADMIN) {
-            throw new IllegalArgumentException("Only system administrators can alter account active status.");
+            throw new org.springframework.security.access.AccessDeniedException("Only system administrators can alter account active status.");
         }
         User target = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        if (!active) {
+            if (target.getId().equals(admin.getId())) {
+                throw new IllegalArgumentException("Administrators cannot deactivate their own active account.");
+            }
+            if (target.getRole() == Role.ADMIN && userRepository.countByRoleAndActiveTrue(Role.ADMIN) <= 1) {
+                throw new IllegalArgumentException("Cannot deactivate the last active administrator account in the system.");
+            }
+        }
+
         target.setActive(active);
         userRepository.save(target);
 
         auditService.logAction(admin.getUsername(), Role.ADMIN.name(), active ? "ACTIVATE_USER" : "DEACTIVATE_USER", "User", userId.toString(), "SUCCESS", "Account active status updated");
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password provided is incorrect.");
+        }
+
+        if (passwordEncoder.matches(req.newPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("New password cannot be the same as the current password.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+        userRepository.save(user);
+
+        auditService.logAction(user.getUsername(), user.getRole().name(), "CHANGE_PASSWORD", "User", user.getId().toString(), "SUCCESS", "User changed account password");
     }
 
     @Transactional

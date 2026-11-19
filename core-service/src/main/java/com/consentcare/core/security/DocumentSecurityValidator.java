@@ -95,7 +95,7 @@ public class DocumentSecurityValidator {
                     break;
                 case "txt":
                 case "csv":
-                    validateTextContent(header, read);
+                    validateTextAndCsvFile(file, extension);
                     break;
                 default:
                     throw new IllegalArgumentException("Disallowed file extension: " + extension);
@@ -105,13 +105,33 @@ public class DocumentSecurityValidator {
         }
     }
 
-    private void validateTextContent(byte[] sample, int length) {
-        for (int i = 0; i < length; i++) {
-            byte b = sample[i];
-            // Disallow null bytes and control chars (except tab, LF, CR)
-            if (b == 0x00 || (b < 0x20 && b != 0x09 && b != 0x0A && b != 0x0D)) {
-                throw new IllegalArgumentException("Binary content detected in plain text file.");
+    private void validateTextAndCsvFile(MultipartFile file, String extension) {
+        try (InputStream is = file.getInputStream()) {
+            byte[] buffer = new byte[4096];
+            int read = is.read(buffer);
+            if (read > 0) {
+                for (int i = 0; i < read; i++) {
+                    byte b = buffer[i];
+                    if (b == 0x00 || (b < 0x20 && b != 0x09 && b != 0x0A && b != 0x0D)) {
+                        throw new IllegalArgumentException("Binary content or null bytes detected in text file.");
+                    }
+                }
+
+                if ("csv".equalsIgnoreCase(extension)) {
+                    String sample = new String(buffer, 0, read, StandardCharsets.UTF_8);
+                    for (String line : sample.split("\\r?\\n")) {
+                        String trimmed = line.trim();
+                        if (trimmed.startsWith("=") || trimmed.startsWith("+") || trimmed.startsWith("-") || trimmed.startsWith("@")) {
+                            // Check for CSV formula injection payload patterns
+                            if (trimmed.toUpperCase().contains("CMD") || trimmed.toUpperCase().contains("POWERSHELL") || trimmed.toUpperCase().contains("EXEC")) {
+                                throw new IllegalArgumentException("Dangerous formula or executable script pattern detected in CSV upload.");
+                            }
+                        }
+                    }
+                }
             }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to inspect text file content: " + e.getMessage());
         }
     }
 

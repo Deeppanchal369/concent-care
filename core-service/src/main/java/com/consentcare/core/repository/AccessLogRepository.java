@@ -11,4 +11,5 @@ public interface AccessLogRepository extends JpaRepository<AccessLog, Long> {
     List<AccessLog> findByPatientIdOrderByAccessedAtDesc(Long patientId);
     List<AccessLog> findByActorUsernameOrderByAccessedAtDesc(String actorUsername);
     Page<AccessLog> findByPatientIdOrderByAccessedAtDesc(Long patientId, Pageable pageable);
+    Page<AccessLog> findByPatientIdAndActorUsernameOrderByAccessedAtDesc(Long patientId, String actorUsername, Pageable pageable);
 }

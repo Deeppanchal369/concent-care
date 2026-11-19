@@ -22,6 +22,7 @@ public class NurseController {
     private final NurseService nurseService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<List<NurseSummary>> listNurses() {
         return ResponseEntity.ok(nurseService.listAllNurses());
     }

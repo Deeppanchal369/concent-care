@@ -48,7 +48,15 @@ public class PatientService {
 
     public PageResponse<PatientActivityResponse> getPatientActivityPaged(Long patientId, Pageable pageable, User actor) {
         auditService.logAction(actor.getUsername(), actor.getRole().name(), "VIEW_PATIENT_ACTIVITY", "Patient", patientId.toString(), "SUCCESS", "Viewed patient activity log");
-        Page<AccessLog> page = accessLogRepository.findByPatientIdOrderByAccessedAtDesc(patientId, pageable);
+
+        Page<AccessLog> page;
+        if (actor.getRole() == Role.PATIENT || actor.getRole() == Role.ADMIN) {
+            page = accessLogRepository.findByPatientIdOrderByAccessedAtDesc(patientId, pageable);
+        } else {
+            // Doctors and nurses only see their own clinical access history for this patient
+            page = accessLogRepository.findByPatientIdAndActorUsernameOrderByAccessedAtDesc(patientId, actor.getUsername(), pageable);
+        }
+
         List<PatientActivityResponse> content = page.getContent().stream()
                 .map(al -> new PatientActivityResponse(
                         al.getId(),

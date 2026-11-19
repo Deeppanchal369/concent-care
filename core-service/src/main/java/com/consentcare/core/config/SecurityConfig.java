@@ -97,6 +97,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/login", "/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write("{\"error\":\"Full authentication is required to access this resource\",\"status\":401,\"code\":\"UNAUTHORIZED\",\"path\":\"" + request.getRequestURI() + "\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write("{\"error\":\"Access is denied under least privilege policy\",\"status\":403,\"code\":\"FORBIDDEN\",\"path\":\"" + request.getRequestURI() + "\"}");
+                })
+            )
             .authenticationProvider(authenticationProvider())
             // Place RateLimitingFilter before authentication to throttle abuse early
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)

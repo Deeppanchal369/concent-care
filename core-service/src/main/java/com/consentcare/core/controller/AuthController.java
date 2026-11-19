@@ -28,6 +28,14 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(req));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<java.util.Map<String, String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest req,
+            @AuthenticationPrincipal User user) {
+        authService.changePassword(user.getId(), req);
+        return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully."));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserSummary> me(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(new UserSummary(

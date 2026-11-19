@@ -64,8 +64,8 @@ public class DocumentService {
                 throw new AccessDeniedException("You can only upload documents to your own patient profile.");
             }
         } else if (uploader.getRole() == Role.DOCTOR || uploader.getRole() == Role.NURSE) {
-            if (!securityEvaluator.canAccessPatientAny(auth, patientId)) {
-                throw new AccessDeniedException("You cannot upload documents for a patient without active consent or care assignment.");
+            if (!securityEvaluator.canAccessPatient(auth, patientId, "DOCUMENTS")) {
+                throw new AccessDeniedException("You cannot upload documents for a patient without active DOCUMENTS consent or care assignment.");
             }
         } else {
             throw new AccessDeniedException("Administrators do not perform clinical document uploads.");
@@ -367,14 +367,14 @@ public class DocumentService {
                     analysis.getId(),
                     analysis.getDocumentId(),
                     analysis.getReportType(),
-                    analysis.getSummaryText(),
-                    analysis.getEntitiesJson(),
+                    "[REDACTED ADMINISTRATIVE METADATA VIEW]",
+                    "[]",
                     analysis.getConfidenceScore(),
                     analysis.getDisclaimer(),
                     analysis.getModelProvider(),
                     analysis.getModelVersion(),
                     analysis.getStatus(),
-                    analysis.getStructuredResultJson(),
+                    "{}",
                     analysis.getCreatedAt()
             );
         }
@@ -399,7 +399,7 @@ public class DocumentService {
                 doc.getDescription(),
                 doc.getProcessingStatus(),
                 doc.getAiStatus(),
-                doc.getExtractedText(),
+                "[REDACTED - SENSITIVE CLINICAL CONTENT]",
                 analysisDto,
                 doc.getUploadedAt(),
                 doc.getUploadedBy(),
@@ -451,6 +451,10 @@ public class DocumentService {
 
     @Transactional
     public DocumentResponse shareDocument(Long documentId, Long doctorId, User actor) {
+        if (actor.getRole() != Role.PATIENT) {
+            throw new AccessDeniedException("Only the owning patient can share documents with healthcare providers.");
+        }
+
         Document doc = documentRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
 
@@ -487,6 +491,10 @@ public class DocumentService {
 
     @Transactional
     public DocumentResponse revokeDocumentShare(Long documentId, Long doctorId, User actor) {
+        if (actor.getRole() != Role.PATIENT) {
+            throw new AccessDeniedException("Only the owning patient can revoke document shares.");
+        }
+
         Document doc = documentRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
 
@@ -513,13 +521,16 @@ public class DocumentService {
     public Resource loadAsResource(Document doc) {
         Path path = Paths.get(doc.getStoragePath());
         if (!Files.exists(path)) {
-            throw new IllegalArgumentException("Stored file is missing on disk: " + doc.getStoragePath());
+            throw new RuntimeException("Requested document file content is not available.");
         }
         return new FileSystemResource(path);
     }
 
     private void validateDocumentAccess(Document doc, User actor) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (doc.isArchived() && actor.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("This document has been archived and is not accessible.");
+        }
         if (actor.getRole() == Role.ADMIN) {
             throw new AccessDeniedException("Administrators do not have direct access to clinical documents.");
         }

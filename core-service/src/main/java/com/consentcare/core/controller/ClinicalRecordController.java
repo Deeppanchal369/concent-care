@@ -138,14 +138,14 @@ public class ClinicalRecordController {
 
     // --- OBSERVATIONS / VITALS ---
     @PostMapping("/observations")
-    @PreAuthorize("(hasRole('DOCTOR') or hasRole('NURSE')) and @consentSecurityEvaluator.canAccessPatientAny(authentication, #req.patientId())")
+    @PreAuthorize("(hasRole('DOCTOR') or hasRole('NURSE')) and @consentSecurityEvaluator.canAccessPatient(authentication, #req.patientId(), 'CLINICAL_NOTES')")
     public ResponseEntity<ObservationResponse> recordObservation(@Valid @RequestBody RecordObservationRequest req,
                                                                  @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(clinicalRecordService.recordObservation(req, user));
     }
 
     @GetMapping("/observations/patient/{patientId}")
-    @PreAuthorize("@consentSecurityEvaluator.canAccessPatientAny(authentication, #patientId)")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'CLINICAL_NOTES')")
     public ResponseEntity<List<ObservationResponse>> listObservations(@PathVariable Long patientId,
                                                                       @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(clinicalRecordService.listObservations(patientId, user));

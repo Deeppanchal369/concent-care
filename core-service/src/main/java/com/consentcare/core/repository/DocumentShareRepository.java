@@ -12,4 +12,8 @@ public interface DocumentShareRepository extends JpaRepository<DocumentShare, Lo
     boolean existsByDocumentIdAndDoctorId(Long documentId, Long doctorId);
     Optional<DocumentShare> findByDocumentIdAndDoctorId(Long documentId, Long doctorId);
     void deleteByDocumentIdAndDoctorId(Long documentId, Long doctorId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM DocumentShare ds WHERE ds.doctor.id = :doctorId AND ds.document.patientId = :patientId")
+    void deleteByDoctorIdAndPatientId(@org.springframework.data.repository.query.Param("doctorId") Long doctorId, @org.springframework.data.repository.query.Param("patientId") Long patientId);
 }

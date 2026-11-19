@@ -31,7 +31,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    validate-on-migrate: false
+    validate-on-migrate: true
     locations: classpath:db/migration
   servlet:
     multipart:
@@ -39,6 +39,11 @@ spring:
       max-request-size: 20MB
 
 consentcare:
+  admin:
+    email: ${ADMIN_EMAIL:admin@consentcare.local}
+    password: ${ADMIN_PASSWORD:Admin@12345}
+    name: ${ADMIN_NAME:ConsentCare System Administrator}
+  seed-demo-data: ${SEED_DEMO_DATA:true}
   jwt:
     # IMPORTANT: override JWT_SECRET with a real, random 32+ byte value
     # in any non-local deployment. Generate one with:

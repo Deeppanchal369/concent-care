@@ -19,10 +19,20 @@ public class LoginAttemptService {
     private final ConcurrentHashMap<String, AtomicInteger> attempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Instant> lockedUntil = new ConcurrentHashMap<>();
 
+    private void evictExpiredIfLarge() {
+        if (attempts.size() > 1000) {
+            Instant now = Instant.now();
+            lockedUntil.entrySet().removeIf(e -> now.isAfter(e.getValue()));
+            attempts.keySet().removeIf(k -> !lockedUntil.containsKey(k));
+        }
+    }
+
     public void recordFailure(String username) {
+        evictExpiredIfLarge();
         String key = key(username);
+        int max = "admin".equalsIgnoreCase(username) ? 10 : MAX_ATTEMPTS;
         int count = attempts.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();
-        if (count >= MAX_ATTEMPTS) {
+        if (count >= max) {
             lockedUntil.put(key, Instant.now().plusSeconds(LOCKOUT_MINUTES * 60));
         }
     }

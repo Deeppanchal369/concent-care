@@ -44,7 +44,7 @@ public class ConsentController {
     }
 
     @PostMapping("/process-expirations")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PATIENT', 'DOCTOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<java.util.Map<String, Object>> processExpirations() {
         int count = consentService.processConsentExpirations();
         return ResponseEntity.ok(java.util.Map.of("processedCount", count, "message", "Consent expirations processed successfully"));

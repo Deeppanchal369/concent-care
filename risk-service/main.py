@@ -26,7 +26,16 @@ app = FastAPI(
     version="2.0.0",
     description="Supervised Machine Learning clinical risk service with real-world dataset registry (MIMIC-IV v3.1, UCI Diabetes baseline, EHRSHOT, MC-MED)."
 )
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+allowed_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:81,http://127.0.0.1:81,http://localhost:8081,http://localhost:3000")
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"]
+)
 
 _bundle = None
 _metrics = None
@@ -245,8 +254,21 @@ def predict(payload: Dict[str, Any]):
     else:
         label = "LOW"
 
-    importances = dict(zip(FEATURE_NAMES, model.feature_importances_))
-    top_factors = dict(sorted(importances.items(), key=lambda kv: kv[1], reverse=True)[:5])
+    base_importances = dict(zip(FEATURE_NAMES, model.feature_importances_))
+    baselines = {
+        "age": 60, "time_in_hospital": 4, "num_lab_procedures": 40, "num_procedures": 1,
+        "num_medications": 15, "number_outpatient": 0, "number_emergency": 0, "number_inpatient": 0,
+        "number_diagnoses": 7, "diabetes_med": 0, "insulin": 0, "a1c_tested": 0
+    }
+    patient_factors = {}
+    mapped = adapter_res.get("mapped_features", {})
+    for feat, imp in base_importances.items():
+        val = mapped.get(feat, 0)
+        norm = baselines.get(feat, 1) or 1
+        dev = abs(val - norm) / norm
+        patient_factors[feat] = imp * (1.0 + dev)
+
+    top_factors = dict(sorted(patient_factors.items(), key=lambda kv: kv[1], reverse=True)[:5])
 
     return {
         "patient_id": patient_id,
@@ -397,8 +419,21 @@ def predict_longitudinal(payload: Dict[str, Any]):
     else:
         label = "LOW"
 
-    importances = dict(zip(FEATURE_NAMES, model.feature_importances_))
-    top_factors = dict(sorted(importances.items(), key=lambda kv: kv[1], reverse=True)[:5])
+    base_importances = dict(zip(FEATURE_NAMES, model.feature_importances_))
+    baselines = {
+        "age": 60, "time_in_hospital": 4, "num_lab_procedures": 40, "num_procedures": 1,
+        "num_medications": 15, "number_outpatient": 0, "number_emergency": 0, "number_inpatient": 0,
+        "number_diagnoses": 7, "diabetes_med": 0, "insulin": 0, "a1c_tested": 0
+    }
+    patient_factors = {}
+    mapped = adapter_res.get("mapped_features", {})
+    for feat, imp in base_importances.items():
+        val = mapped.get(feat, 0)
+        norm = baselines.get(feat, 1) or 1
+        dev = abs(val - norm) / norm
+        patient_factors[feat] = imp * (1.0 + dev)
+
+    top_factors = dict(sorted(patient_factors.items(), key=lambda kv: kv[1], reverse=True)[:5])
 
     return {
         "patient_id": patient_id,

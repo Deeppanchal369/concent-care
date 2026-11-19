@@ -27,7 +27,16 @@ app = FastAPI(
     version="1.0.0",
     description="Document AI processing, real OCR, structured clinical information extraction, and Ollama integration."
 )
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+allowed_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:81,http://127.0.0.1:81,http://localhost:8081,http://localhost:3000")
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"]
+)
 
 
 @app.get("/health")

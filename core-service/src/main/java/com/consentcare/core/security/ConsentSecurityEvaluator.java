@@ -61,6 +61,9 @@ public class ConsentSecurityEvaluator {
 
         // 3. Doctor accessing patient with active consent for the specific category or ENTIRE_RECORD
         if (user.getRole() == Role.DOCTOR) {
+            if (!patientRepository.existsById(patientId)) {
+                return false;
+            }
             Doctor doctor = doctorRepository.findByUserId(user.getId()).orElse(null);
             if (doctor == null) {
                 auditService.logAccess(patientId, user, categoryName, "DENY", "Doctor profile not found", false);
@@ -98,6 +101,7 @@ public class ConsentSecurityEvaluator {
 
         // 4. Nurse accessing patient assigned to their tasks or their doctor's active care team
         if (user.getRole() == Role.NURSE) {
+            if (!patientRepository.existsById(patientId)) return false;
             Nurse nurse = nurseRepository.findByUserId(user.getId()).orElse(null);
             if (nurse == null) return false;
 
@@ -162,6 +166,7 @@ public class ConsentSecurityEvaluator {
         }
 
         if (user.getRole() == Role.NURSE) {
+            if (!patientRepository.existsById(patientId)) return false;
             Nurse nurse = nurseRepository.findByUserId(user.getId()).orElse(null);
             if (nurse == null) return false;
             OffsetDateTime now = OffsetDateTime.now();
@@ -177,6 +182,7 @@ public class ConsentSecurityEvaluator {
         if (authentication == null || !authentication.isAuthenticated() || patientId == null) return false;
         if (!(authentication.getPrincipal() instanceof User user)) return false;
         if (user.getRole() != Role.DOCTOR) return false;
+        if (!patientRepository.existsById(patientId)) return false;
 
         Doctor doctor = doctorRepository.findByUserId(user.getId()).orElse(null);
         if (doctor == null) return false;

@@ -31,6 +31,9 @@ public class ConsentService {
     private final ConsentWorkflowService workflowService;
     private final NotificationService notificationService;
     private final AuditService auditService;
+    private final DocumentShareRepository documentShareRepository;
+    private final NurseRepository nurseRepository;
+    private final DoctorNurseAssignmentRepository assignmentRepository;
 
     @Transactional
     public AccessRequestResponse requestAccess(CreateAccessRequest req, User patientUser) {
@@ -193,7 +196,7 @@ public class ConsentService {
         consent.setStatus(ConsentStatus.REVOKED);
         consent = consentRepository.save(consent);
 
-        Doctor doctor = doctorRepository.findById(consent.getDoctorId()).orElse(null);
+        Doctor doctor = consent.getDoctorId() != null ? doctorRepository.findById(consent.getDoctorId()).orElse(null) : null;
         if (doctor != null) {
             notificationService.createNotification(
                     doctor.getUser().getId(),
@@ -245,6 +248,8 @@ public class ConsentService {
             );
         }
 
+        documentShareRepository.deleteByDoctorIdAndPatientId(doctorId, patient.getId());
+
         auditService.logAction(actor.getUsername(), Role.PATIENT.name(), "REVOKE_DOCTOR_ACCESS", "Doctor", doctorId.toString(), "SUCCESS", "Patient revoked all consents for doctor #" + doctorId + " (revoked " + activeConsents.size() + " consents)");
 
         return activeConsents.size();
@@ -262,8 +267,8 @@ public class ConsentService {
             consentRepository.save(c);
             processedCount++;
 
-            Patient p = patientRepository.findById(c.getPatientId()).orElse(null);
-            Doctor d = doctorRepository.findById(c.getDoctorId()).orElse(null);
+            Patient p = c.getPatientId() != null ? patientRepository.findById(c.getPatientId()).orElse(null) : null;
+            Doctor d = c.getDoctorId() != null ? doctorRepository.findById(c.getDoctorId()).orElse(null) : null;
 
             String patientName = p != null ? p.getFullName() : "Patient #" + c.getPatientId();
             String doctorName = d != null ? d.getUser().getFullName() : "Doctor #" + c.getDoctorId();
@@ -311,8 +316,8 @@ public class ConsentService {
             consentRepository.save(c);
 
             long minutesLeft = Math.max(1, java.time.Duration.between(now, c.getExpiresAt()).toMinutes());
-            Patient p = patientRepository.findById(c.getPatientId()).orElse(null);
-            Doctor d = doctorRepository.findById(c.getDoctorId()).orElse(null);
+            Patient p = c.getPatientId() != null ? patientRepository.findById(c.getPatientId()).orElse(null) : null;
+            Doctor d = c.getDoctorId() != null ? doctorRepository.findById(c.getDoctorId()).orElse(null) : null;
 
             String patientName = p != null ? p.getFullName() : "Patient #" + c.getPatientId();
 
@@ -335,9 +340,27 @@ public class ConsentService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + patientId));
 
-        return consentRepository.findByPatientId(patientId).stream()
+        List<Consent> consents = consentRepository.findByPatientId(patientId);
+
+        if (actor.getRole() == Role.DOCTOR) {
+            Doctor doc = doctorRepository.findByUserId(actor.getId()).orElse(null);
+            final Long myDoctorId = doc != null ? doc.getId() : -1L;
+            consents = consents.stream().filter(c -> c.getDoctorId() != null && c.getDoctorId().equals(myDoctorId)).toList();
+        } else if (actor.getRole() == Role.NURSE) {
+            Nurse nurse = nurseRepository.findByUserId(actor.getId()).orElse(null);
+            if (nurse != null) {
+                List<Long> assignedDocIds = assignmentRepository.findByNurseIdAndActiveTrue(nurse.getId()).stream()
+                        .map(a -> a.getDoctor().getId())
+                        .toList();
+                consents = consents.stream().filter(c -> c.getDoctorId() != null && assignedDocIds.contains(c.getDoctorId())).toList();
+            } else {
+                consents = List.of();
+            }
+        }
+
+        return consents.stream()
                 .map(c -> {
-                    Doctor doc = doctorRepository.findById(c.getDoctorId()).orElse(null);
+                    Doctor doc = c.getDoctorId() != null ? doctorRepository.findById(c.getDoctorId()).orElse(null) : null;
                     return toConsentResponse(c, patient, doc);
                 })
                 .toList();

@@ -68,12 +68,46 @@ html.dark body {
 :where(.dark, .dark *) .bg-gray-100:not([class*="dark:bg-"]) {
   background-color: #1e293b !important;
 }
-:where(.dark, .dark *) .dark\:bg-slate-850,
-:where(.dark, .dark *) .bg-slate-850 {
+html.dark [class*="dark:bg-slate-800"],
+.dark [class*="dark:bg-slate-800"],
+html.dark .dark\:bg-slate-800,
+.dark .dark\:bg-slate-800 {
+  background-color: #1e293b !important;
+}
+
+html.dark [class*="dark:bg-slate-850"],
+.dark [class*="dark:bg-slate-850"],
+html.dark .dark\:bg-slate-850,
+.dark .dark\:bg-slate-850,
+html.dark .bg-slate-850,
+.dark .bg-slate-850 {
   background-color: #141e33 !important;
 }
-:where(.dark, .dark *) .dark\:hover\:bg-slate-850:hover,
-:where(.dark, .dark *) .hover\:bg-slate-850:hover {
+
+html.dark [class*="dark:bg-slate-900"],
+.dark [class*="dark:bg-slate-900"],
+html.dark .dark\:bg-slate-900,
+.dark .dark\:bg-slate-900 {
+  background-color: #0f172a !important;
+}
+
+html.dark [class*="dark:bg-slate-950"],
+.dark [class*="dark:bg-slate-950"],
+html.dark .dark\:bg-slate-950,
+.dark .dark\:bg-slate-950 {
+  background-color: #0b1329 !important;
+}
+
+html.dark [class*="dark:hover:bg-slate-800"]:hover,
+.dark [class*="dark:hover:bg-slate-800"]:hover,
+html.dark .dark\:hover\:bg-slate-800:hover,
+.dark .dark\:hover\:bg-slate-800:hover,
+html.dark [class*="dark:hover:bg-slate-850"]:hover,
+.dark [class*="dark:hover:bg-slate-850"]:hover,
+html.dark .dark\:hover\:bg-slate-850:hover,
+.dark .dark\:hover\:bg-slate-850:hover,
+html.dark .hover\:bg-slate-850:hover,
+.dark .hover\:bg-slate-850:hover {
   background-color: #1e293b !important;
 }
 

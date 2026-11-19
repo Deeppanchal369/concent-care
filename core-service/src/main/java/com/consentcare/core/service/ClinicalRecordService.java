@@ -368,7 +368,7 @@ public class ClinicalRecordService {
             throw new org.springframework.security.access.AccessDeniedException("Administrators do not record clinical vitals.");
         }
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (!securityEvaluator.canAccessPatientAny(auth, req.patientId())) {
+        if (!securityEvaluator.canAccessPatient(auth, req.patientId(), "CLINICAL_NOTES")) {
             throw new org.springframework.security.access.AccessDeniedException("Access denied: You do not have care team authorization for this patient.");
         }
 

@@ -23,30 +23,31 @@ public class FhirController {
     }
 
     @GetMapping("/Patient/{patientId}/$everything")
-    @PreAuthorize("@consentSecurityEvaluator.canAccessPatientAny(authentication, #patientId)")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'ENTIRE_RECORD')")
     public ResponseEntity<Map<String, Object>> getPatientEverything(@PathVariable Long patientId) {
         return ResponseEntity.ok(fhirService.getPatientEverythingBundle(patientId));
     }
 
     @GetMapping("/Practitioner/{userId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getPractitioner(@PathVariable Long userId) {
         return ResponseEntity.ok(fhirService.getPractitionerResource(userId));
     }
 
     @GetMapping("/Observation")
-    @PreAuthorize("@consentSecurityEvaluator.canAccessPatientAny(authentication, #patientId)")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'LAB_REPORTS')")
     public ResponseEntity<List<Map<String, Object>>> getObservations(@RequestParam("patient") Long patientId) {
         return ResponseEntity.ok(fhirService.getObservationsForPatient(patientId));
     }
 
     @GetMapping("/Condition")
-    @PreAuthorize("@consentSecurityEvaluator.canAccessPatientAny(authentication, #patientId)")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'DIAGNOSES')")
     public ResponseEntity<List<Map<String, Object>>> getConditions(@RequestParam("patient") Long patientId) {
         return ResponseEntity.ok(fhirService.getConditionsForPatient(patientId));
     }
 
     @GetMapping("/MedicationRequest")
-    @PreAuthorize("@consentSecurityEvaluator.canAccessPatientAny(authentication, #patientId)")
+    @PreAuthorize("@consentSecurityEvaluator.canAccessPatient(authentication, #patientId, 'PRESCRIPTIONS')")
     public ResponseEntity<List<Map<String, Object>>> getMedicationRequests(@RequestParam("patient") Long patientId) {
         return ResponseEntity.ok(fhirService.getMedicationRequestsForPatient(patientId));
     }

@@ -96,12 +96,16 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String extractClientIp(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
-            // Take the first IP if multiple proxies are chained
-            return xff.split(",")[0].trim();
+            String[] parts = xff.split(",");
+            // Pick rightmost IP added by trusted reverse proxy (nginx/docker gateway)
+            String rightmost = parts[parts.length - 1].trim();
+            if (!rightmost.isBlank()) {
+                return rightmost;
+            }
         }
-        String remoteAddr = request.getRemoteAddr();
         return remoteAddr != null ? remoteAddr : "127.0.0.1";
     }
 }

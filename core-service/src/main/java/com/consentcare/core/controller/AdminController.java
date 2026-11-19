@@ -76,7 +76,7 @@ public class AdminController {
     @PutMapping("/users/{id}")
     public ResponseEntity<UserSummary> updateUser(
             @PathVariable Long id,
-            @RequestBody UpdateUserProfileRequest req,
+            @Valid @RequestBody UpdateUserProfileRequest req,
             @AuthenticationPrincipal User admin) {
         return ResponseEntity.ok(adminService.updateUserProfile(id, req, admin));
     }

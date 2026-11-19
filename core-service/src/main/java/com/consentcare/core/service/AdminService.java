@@ -44,6 +44,7 @@ public class AdminService {
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
     private final DocumentService documentService;
+    private final com.consentcare.core.security.LoginAttemptService loginAttemptService;
 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
@@ -194,9 +195,21 @@ public class AdminService {
             target.setFullName(req.fullName().trim());
         }
         if (req.email() != null && !req.email().isBlank()) {
-            target.setEmail(req.email().trim().toLowerCase());
+            String newEmail = req.email().trim().toLowerCase();
+            if (!newEmail.equalsIgnoreCase(target.getEmail()) && userRepository.existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("Email address '" + newEmail + "' is already in use by another account.");
+            }
+            target.setEmail(newEmail);
         }
         if (req.active() != null) {
+            if (!req.active()) {
+                if (target.getId().equals(admin.getId())) {
+                    throw new IllegalArgumentException("Administrators cannot deactivate their own active account.");
+                }
+                if (target.getRole() == Role.ADMIN && userRepository.countByRoleAndActiveTrue(Role.ADMIN) <= 1) {
+                    throw new IllegalArgumentException("Cannot deactivate the last active administrator account in the system.");
+                }
+            }
             target.setActive(req.active());
         }
         userRepository.save(target);
@@ -222,6 +235,7 @@ public class AdminService {
 
         target.setPasswordHash(passwordEncoder.encode(req.newPassword()));
         userRepository.save(target);
+        loginAttemptService.recordSuccess(target.getUsername());
 
         String note = (req.reason() != null && !req.reason().isBlank()) ? req.reason() : "Administrative password reset";
         auditService.logAction(admin.getUsername(), Role.ADMIN.name(), "ADMIN_PASSWORD_RESET",
@@ -430,6 +444,18 @@ public class AdminService {
 
         auditService.logAction(admin.getUsername(), Role.ADMIN.name(), "ADMIN_VIEW_DOCUMENT",
                 "Document", documentId.toString(), "SUCCESS", administrativeReason.trim());
+
+        Patient patient = patientRepository.findById(doc.getPatientId()).orElse(null);
+        if (patient != null && patient.getLinkedUserId() != null) {
+            notificationService.createNotification(
+                    patient.getLinkedUserId(),
+                    "ADMIN_AUDIT",
+                    "Administrative Document Inspection",
+                    "An administrator reviewed metadata for document '" + (doc.getTitle() != null ? doc.getTitle() : doc.getFileName()) + "'. Reason: " + administrativeReason.trim(),
+                    "Document",
+                    doc.getId().toString()
+            );
+        }
 
         return documentService.getDocumentDetailForAdmin(documentId, admin);
     }

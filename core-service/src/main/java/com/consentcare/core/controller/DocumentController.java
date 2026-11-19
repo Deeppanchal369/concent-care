@@ -133,9 +133,18 @@ public class DocumentController {
             @AuthenticationPrincipal User actor) {
         Document doc = documentService.getMetaForDownload(id, actor);
         Resource resource = documentService.loadAsResource(doc);
-        MediaType mediaType = doc.getContentType() != null
-                ? MediaType.parseMediaType(doc.getContentType())
-                : MediaType.APPLICATION_OCTET_STREAM;
+
+        String ext = (doc.getFileName() != null && doc.getFileName().contains("."))
+                ? doc.getFileName().substring(doc.getFileName().lastIndexOf('.') + 1).toLowerCase()
+                : "";
+
+        MediaType mediaType = switch (ext) {
+            case "pdf" -> MediaType.APPLICATION_PDF;
+            case "png" -> MediaType.IMAGE_PNG;
+            case "jpg", "jpeg" -> MediaType.IMAGE_JPEG;
+            case "txt", "csv" -> MediaType.valueOf("text/plain;charset=UTF-8");
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
 
         String safeFileName = (doc.getOriginalFilename() != null && !doc.getOriginalFilename().isBlank())
                 ? doc.getOriginalFilename()
@@ -149,7 +158,7 @@ public class DocumentController {
                 .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header("X-Content-Type-Options", "nosniff")
-                .header("Content-Security-Policy", "default-src 'self'")
+                .header("Content-Security-Policy", "default-src 'none'; sandbox")
                 .body(resource);
     }
 
